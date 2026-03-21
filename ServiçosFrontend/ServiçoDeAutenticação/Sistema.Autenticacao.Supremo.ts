@@ -73,10 +73,10 @@ const createAuthService = () => {
                 throw error;
             }
         },
-        async loginComGoogle() { // Função adicionada
+        async loginWithGoogle(credential: string, referredBy?: string) {
             setState({ loading: true, error: null });
             try {
-                const data = await servicoGestaoLogin.loginComGoogle();
+                const data = await servicoGestaoLogin.loginComGoogle(credential, referredBy);
                 setState({ user: data.user, loading: false });
                 return data;
             } catch (error: any) {
