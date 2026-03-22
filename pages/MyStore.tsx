@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { HookMinhaLoja } from '../hooks/Hook.Minha.Loja';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { ProductStoreList } from '../Componentes/store/ProductStoreList';
 import { CampaignStoreList } from '../Componentes/store/CampaignStoreList';
 

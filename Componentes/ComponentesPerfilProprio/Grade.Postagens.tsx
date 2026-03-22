@@ -3,7 +3,7 @@ import React from 'react';
 import { usePerfilProprioGradePostagens } from '../../hooks/Hook.Perfil.Proprio.Grade.Postagens';
 // CORREÇÃO: Alterando para importação padrão
 import ContainerFeedPadrao from '../ComponentesDeFeed/Container.Feed.Padrao';
-import { LoadingScreen } from '../ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 interface PostFeedProps {
     userId: string;
@@ -13,7 +13,7 @@ export const GradeDePostagens: React.FC<PostFeedProps> = ({ userId }) => {
     const { postagens, loading, error } = usePerfilProprioGradePostagens(userId);
 
     if (loading) {
-        return <LoadingScreen />;
+        return <ModalTelaCarregamento />;
     }
 
     if (error) {

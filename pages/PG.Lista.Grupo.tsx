@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { HookListaGrupos } from '../hooks/Hook.Lista.Grupos';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { Group } from '../tipos';
 import { Footer } from '../Componentes/layout/Footer';
 import { MainHeader } from '../Componentes/layout/MainHeader';

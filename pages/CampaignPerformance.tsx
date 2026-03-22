@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { HookDesempenhoCampanha } from '../hooks/Hook.Desempenho.Campanha';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { CampaignInfoCard } from '../Componentes/ads/performance/CampaignInfoCard';
 import { DeliveryMetrics } from '../Componentes/ads/performance/DeliveryMetrics';
 import { ClickMetrics } from '../Componentes/ads/performance/ClickMetrics';

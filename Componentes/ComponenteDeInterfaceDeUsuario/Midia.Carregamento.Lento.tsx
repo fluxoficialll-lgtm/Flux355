@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 
-interface LazyMediaProps {
+interface MidiaCarregamentoLentoProps {
     src: string;
     type: 'image' | 'video';
     alt?: string;
@@ -8,7 +9,7 @@ interface LazyMediaProps {
     className?: string;
 }
 
-export const LazyMedia: React.FC<LazyMediaProps> = ({ src, type, alt, onClick, className }) => {
+export const MidiaCarregamentoLento: React.FC<MidiaCarregamentoLentoProps> = ({ src, type, alt, onClick, className }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
     const elementRef = useRef<HTMLDivElement>(null);

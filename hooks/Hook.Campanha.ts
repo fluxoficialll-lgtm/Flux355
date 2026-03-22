@@ -7,7 +7,7 @@ import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutentica
 // import { adService } from '../ServiçosFrontend/ServiçoDeAnúncios/adService.js';
 import { AdCampaign, Post } from '../tipos/types.Anuncios'; 
 import { Group } from '../tipos/types.Criacao.Grupo.Publico';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { AdFlowStep } from '../Componentes/ads/constants/AdConstants';
 
 export const HookCampanha = () => {

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useModal } from '../../../../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../../../../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 
 interface ModalFiltroDimensaoProps {
     onDimensionChange: (dimension: string) => void;

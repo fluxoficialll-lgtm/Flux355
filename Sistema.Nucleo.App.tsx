@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { HashRouter } from 'react-router-dom';
-import { ModalProvider } from './Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { ProvedorModal } from './Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { GlobalTracker } from './Componentes/layout/GlobalTracker';
 import { DeepLinkHandler } from './Componentes/layout/DeepLinkHandler';
 import AppRoutes from './routes/AppRoutes';
@@ -93,7 +93,7 @@ const SistemaNucleoApp: React.FC = () => {
   return (
     <MonitorDeErrosDeInterface>
       <AuthProvider>
-        <ModalProvider>
+        <ProvedorModal>
           <HashRouter>
             <GlobalTracker />
             <DeepLinkHandler />
@@ -101,7 +101,7 @@ const SistemaNucleoApp: React.FC = () => {
               <AppRoutes />
             </Suspense>
           </HashRouter>
-        </ModalProvider>
+        </ProvedorModal>
       </AuthProvider>
     </MonitorDeErrosDeInterface>
   );

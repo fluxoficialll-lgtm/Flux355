@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { usePerfilProprioGradeReels } from '../../hooks/Hook.Perfil.Proprio.Grade.Reels';
-import { LoadingScreen } from '../ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 interface Reel {
     id: string;
@@ -17,7 +17,7 @@ export const GradeDeReels: React.FC<ReelsGridProps> = ({ userId, onReelClick }) 
     const { reels, loading, error } = usePerfilProprioGradeReels(userId);
 
     if (loading) {
-        return <LoadingScreen />;
+        return <ModalTelaCarregamento />;
     }
 
     if (error) {

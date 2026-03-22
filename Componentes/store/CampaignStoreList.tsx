@@ -2,7 +2,7 @@ import React, { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdCampaign } from '../../types';
 import { useVipPricing } from '../../hooks/Hook.Precos.Vip';
-import { useModal } from '../ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 
 const PaymentFlowModal = lazy(() => import('../ComponentesDeProvedores/PaymentFlowModal').then(m => ({ default: m.PaymentFlowModal })));
 

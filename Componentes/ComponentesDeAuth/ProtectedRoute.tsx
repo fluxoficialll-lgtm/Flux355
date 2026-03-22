@@ -1,11 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-// CORREÇÃO: A importação foi atualizada para usar o serviço de autenticação real.
-// A lógica de simulação agora é tratada globalmente via interceptação de fetch,
-// então os componentes não precisam mais saber sobre mocks ou factories.
 import SistemaAutenticacaoSupremo from '../../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { LoadingScreen } from '../ComponenteDeInterfaceDeUsuario/LoadingScreen.tsx';
+import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 
 interface ProtectedRouteProps {
@@ -22,7 +19,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, []);
 
   if (authState.loading) {
-    return <LoadingScreen />;
+    return <ModalTelaCarregamento />;
   }
 
   const isUserAuthenticated = !!authState.user;

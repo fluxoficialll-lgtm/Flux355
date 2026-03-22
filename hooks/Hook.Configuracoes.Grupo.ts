@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 
 export const useGroupSettings = () => {
     const navigate = useNavigate();

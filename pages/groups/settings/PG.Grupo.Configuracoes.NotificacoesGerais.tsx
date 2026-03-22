@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useGroupNotificationSettings, GroupNotificationSettings } from '../../../hooks/Hook.Grupo.Config.Notificacoes';
-import { LoadingScreen } from '../../../Componentes/ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { ModalTelaCarregamento } from '../../../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 import { ErrorFallback as FallbackDeErro } from '../../../Componentes/ComponentesDePrevençãoDeErros/FallbackDeErro';
 import CardConfiguracaoNotificacoes from '../../../Componentes/ComponentesDeGroups/Componentes/ComponentesDeConfiguracoesDeGrupo/Card.Configuracao.Notificacoes';
 import { MainHeader } from '../../../Componentes/layout/MainHeader';
@@ -19,7 +19,7 @@ const PG_Grupo_Configuracoes_NotificacoesGerais: React.FC = () => {
     };
 
     if (loading) {
-        return <LoadingScreen />;
+        return <ModalTelaCarregamento />;
     }
 
     if (error || !settings) {

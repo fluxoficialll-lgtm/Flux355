@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { Post, PollOption } from '../../tipos';
-import { AvatarPreviewModal } from '../ComponenteDeInterfaceDeUsuario/AvatarPreviewModal';
+import { AvatarPreviewModal } from '../ComponenteDeInterfaceDeUsuario/Modal.Previa.Avatar';
 import { UserBadge } from '../ComponenteDeInterfaceDeUsuario/user/UserBadge';
 import { HookPerfilTerceiro } from '../../hooks/Hook.Perfil.Terceiro';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { LazyMedia } from '../ComponenteDeInterfaceDeUsuario/LazyMedia';
+import { MidiaCarregamentoLento } from '../ComponenteDeInterfaceDeUsuario/Midia.Carregamento.Lento';
 
 interface ContainerFeedEnqueteProps {
     post: Post;
@@ -131,7 +131,7 @@ export const ContainerFeedEnquete: React.FC<ContainerFeedEnqueteProps> = React.m
                 {post.text && <p className="text-white text-sm mb-3 cursor-pointer">{post.text}</p>}
                 {post.mediaUrl && (
                     <div className="media-container cursor-pointer -mx-4">
-                        <LazyMedia src={post.mediaUrl} alt="Post media" mediaType={post.mediaType} />
+                        <MidiaCarregamentoLento src={post.mediaUrl} alt="Post media" mediaType={post.mediaType} />
                     </div>
                 )}
                 <Enquete 

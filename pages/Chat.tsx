@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { HookConversa } from '../hooks/Hook.Conversa';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { Virtuoso } from 'react-virtuoso';
 import { ChatHeader } from '../Componentes/ComponentesDeChats/ChatHeader';
 import { ChatInput } from '../Componentes/ComponentesDeChats/ChatInput';

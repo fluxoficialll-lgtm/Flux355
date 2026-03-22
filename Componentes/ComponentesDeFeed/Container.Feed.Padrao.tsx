@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { AvatarPreviewModal } from '../ComponenteDeInterfaceDeUsuario/AvatarPreviewModal';
+import { AvatarPreviewModal } from '../ComponenteDeInterfaceDeUsuario/Modal.Previa.Avatar';
 import { UserBadge } from '../ComponenteDeInterfaceDeUsuario/user/UserBadge';
 import { HookPerfilTerceiro } from '../../hooks/Hook.Perfil.Terceiro';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { LazyMedia } from '../ComponenteDeInterfaceDeUsuario/LazyMedia';
+import { MidiaCarregamentoLento } from '../ComponenteDeInterfaceDeUsuario/Midia.Carregamento.Lento';
 import { PublicacaoFeed } from '../../types/Saida/Types.Estrutura.Publicacao.Feed';
 
 interface ContainerFeedPadraoProps {
@@ -96,7 +96,7 @@ const ContainerFeedPadrao: React.FC<ContainerFeedPadraoProps> = React.memo(({
                 {post.content && <p className="text-white text-sm mb-3 cursor-pointer">{post.content}</p>}
                 {post.media && post.media.length > 0 && (
                     <div className="media-container cursor-pointer -mx-4">
-                        <LazyMedia src={post.media[0].url} alt="Post media" mediaType={post.media[0].type} />
+                        <MidiaCarregamentoLento src={post.media[0].url} alt="Post media" type={post.media[0].type} />
                     </div>
                 )}
             </div>

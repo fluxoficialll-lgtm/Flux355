@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { HookPesquisaGlobal } from '../hooks/Hook.Pesquisa.Global';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { User } from '../types';
 
 // A interface para o usuário enriquecido que vem do hook

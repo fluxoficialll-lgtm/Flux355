@@ -9,8 +9,8 @@ import { CartaoDeInformacoesDoPerfil } from '../Componentes/ComponentesPerfilPro
 import { CardCategoriasPerfil } from '../Componentes/ComponentesPerfilProprio/Card.Categorias.Perfil';
 import { Footer } from '../Componentes/layout/Footer';
 import { ModalListaDeSeguidores } from '../Componentes/ComponentesPerfilProprio/ModalListaDeSeguidores';
-import { AvatarPreviewModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/AvatarPreviewModal';
-import { LoadingScreen } from '../Componentes/ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { AvatarPreviewModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Previa.Avatar';
+import { ModalTelaCarregamento } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 import { GradeDePostagens } from '../Componentes/ComponentesPerfilProprio/Grade.Postagens';
 import { GradeDeProdutos } from '../Componentes/ComponentesPerfilProprio/Grade.Produtos';
@@ -36,7 +36,7 @@ const ProfilePageContent = ({ userId }) => {
         setIsModalOpen(true);
     };
 
-    if (isLoading) return <LoadingScreen />;
+    if (isLoading) return <ModalTelaCarregamento />;
     if (error) return <div className="flex items-center justify-center h-screen bg-black text-white"><p>Erro: {error}</p></div>;
     if (!profile) return <div className="flex items-center justify-center h-screen bg-black text-white"><p>Perfil não encontrado.</p></div>;
 

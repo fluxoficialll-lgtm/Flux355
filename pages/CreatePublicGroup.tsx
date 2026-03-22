@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useCreatePublicGroup } from '../hooks/Hook.Criacao.Grupo.Publico';
-import { ImageCropModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ImageCropModal';
+import { ModalCorteImagem } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Corte.Imagem';
 
 export const CreatePublicGroup: React.FC = () => {
   const {
@@ -109,11 +109,11 @@ export const CreatePublicGroup: React.FC = () => {
         </div>
       </main>
 
-      <ImageCropModal 
-        isOpen={isCropOpen}
-        imageSrc={rawImage}
-        onClose={() => setIsCropOpen(false)}
-        onSave={handleCroppedImage}
+      <ModalCorteImagem 
+        aberto={isCropOpen}
+        imagemSrc={rawImage}
+        aoFechar={() => setIsCropOpen(false)}
+        aoSalvar={handleCroppedImage}
       />
     </div>
   );

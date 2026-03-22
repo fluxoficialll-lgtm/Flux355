@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Post } from '../../tipos';
-import { AvatarPreviewModal } from '../ComponenteDeInterfaceDeUsuario/AvatarPreviewModal';
+import { AvatarPreviewModal } from '../ComponenteDeInterfaceDeUsuario/Modal.Previa.Avatar';
 import { UserBadge } from '../ComponenteDeInterfaceDeUsuario/user/UserBadge';
 import { HookPerfilTerceiro } from '../../hooks/Hook.Perfil.Terceiro';
 import { formatDistanceToNow } from 'date-fns';

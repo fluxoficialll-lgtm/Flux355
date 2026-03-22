@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { ChatMessage } from '../../types';
-import { LazyMedia } from '../ComponenteDeInterfaceDeUsuario/LazyMedia';
+import { MidiaCarregamentoLento } from '../ComponenteDeInterfaceDeUsuario/Midia.Carregamento.Lento';
 import { AudioPlayer } from './AudioPlayer';
 
 interface MessageItemProps {
@@ -124,7 +124,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
                 {(msg.contentType === 'image' || msg.contentType === 'video') && msg.mediaUrl && (
                     <div style={{ width: '100%', maxWidth: '320px', borderRadius: '16px', marginBottom: hasOnlyMedia ? '0' : '5px', overflow: 'hidden' }}>
-                        <LazyMedia
+                        <MidiaCarregamentoLento
                             src={msg.mediaUrl}
                             type={msg.contentType}
                             onClick={(e) => { if (!isSelectionMode) { e.stopPropagation(); onMediaClick(msg.mediaUrl!, msg.contentType as 'image' | 'video'); } }}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useCreatePrivateGroup } from '../hooks/Hook.Criacao.Grupo.Privado';
-import { ImageCropModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ImageCropModal';
+import { ModalCorteImagem } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Corte.Imagem';
 
 export const CreatePrivateGroup: React.FC = () => {
   const {
@@ -112,11 +112,11 @@ export const CreatePrivateGroup: React.FC = () => {
         </div>
       </main>
 
-      <ImageCropModal 
-        isOpen={isCropOpen}
-        imageSrc={rawImage}
-        onClose={() => setIsCropOpen(false)}
-        onSave={handleCroppedImage}
+      <ModalCorteImagem 
+        aberto={isCropOpen}
+        imagemSrc={rawImage}
+        aoFechar={() => setIsCropOpen(false)}
+        aoSalvar={handleCroppedImage}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Post, User } from '../../../types';
 import ContainerFeedPadrao from '../Container.Feed.Padrao'; // CORRIGIDO
-import { useModal } from '../../ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../../ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { SearchTab } from '../../../pages/FeedSearch';
 import { UserBadge } from '../../ComponenteDeInterfaceDeUsuario/user/UserBadge';
 import { feedPublicationService as ServiçoPublicaçãoFeed } from '../../../ServiçosFrontend/ServiçosDePublicações/Servico.Publicacao.Feed';

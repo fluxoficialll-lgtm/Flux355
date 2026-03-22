@@ -1,13 +1,11 @@
 
 import React, { useRef } from 'react';
 import { useCompleteProfile } from '../hooks/Hook.Perfil.Completar';
-import { ImageCropModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ImageCropModal';
-import { Switch } from '../Componentes/ComponenteDeInterfaceDeUsuario/Switch';
+import { ModalCorteImagem } from '../Componentes/ComponenteDeInterfaceDeUsuario/Modal.Corte.Imagem';
 
 export const CompleteProfile: React.FC = () => {
     const {
         dadosFormulario,
-        perfilPrivado,
         previaImagem,
         carregando,
         erroNomeUsuario,
@@ -17,7 +15,6 @@ export const CompleteProfile: React.FC = () => {
         aoMudarInput,
         aoMudarImagem,
         aoSalvarImagemCortada,
-        aoMudarPrivacidade,
         aoSubmeter,
         aoSair
     } = useCompleteProfile();
@@ -66,21 +63,13 @@ export const CompleteProfile: React.FC = () => {
                         <textarea name="bio" value={dadosFormulario.bio || ''} onChange={aoMudarInput} placeholder="Fale um pouco sobre você" rows={2}></textarea>
                     </div>
 
-                    <div className="input-group">
-                        <Switch 
-                            label="Conta Privada" 
-                            marcado={perfilPrivado} 
-                            aoMudar={aoMudarPrivacidade} 
-                        />
-                    </div>
-
                     <button type="submit" className="submit-btn" disabled={carregando}>{carregando ? 'Finalizando...' : 'Concluir Cadastro'}</button>
                 </form>
 
                 <button onClick={aoSair} className="logout-btn">Sair da conta</button>
             </div>
 
-            <ImageCropModal aberto={cortarAberto} imagemSrc={imagemOriginal} aoFechar={() => setCortarAberto(false)} aoSalvar={aoSalvarImagemCortada} />
+            <ModalCorteImagem aberto={cortarAberto} imagemSrc={imagemOriginal} aoFechar={() => setCortarAberto(false)} aoSalvar={aoSalvarImagemCortada} />
         </div>
     );
 };

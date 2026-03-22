@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { HookFeed } from '../hooks/Hook.Feed';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { Footer } from '../Componentes/layout/Footer';
 import { MainHeader } from '../Componentes/layout/MainHeader';
 import { PublicacaoFeed } from '../types/Saida/Types.Estrutura.Publicacao.Feed';

@@ -3,7 +3,7 @@ import React from 'react';
 import { usePerfilProprioGradeProdutos } from '../../hooks/Hook.Perfil.Proprio.Grade.Produtos';
 import { ProductCard, PromotionalContainer } from '../ComponentesDeMarketplace/Container.Marketplace.Produto';
 import { MarketplaceItem, Product } from '../../../types';
-import { LoadingScreen } from '../ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 interface ProfileProductsGridProps {
     userId: string;
@@ -14,7 +14,7 @@ export const GradeDeProdutos: React.FC<ProfileProductsGridProps> = ({ userId, on
     const { produtos, loading, error } = usePerfilProprioGradeProdutos(userId);
 
     if (loading) {
-        return <LoadingScreen />;
+        return <ModalTelaCarregamento />;
     }
 
     if (error) {

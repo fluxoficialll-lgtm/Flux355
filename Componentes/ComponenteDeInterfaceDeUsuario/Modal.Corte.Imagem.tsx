@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { PropsModalCortarImagem } from '@/tipos/CompleteProfile.types';
 
-export const ImageCropModal: React.FC<PropsModalCortarImagem> = ({ aberto, imagemSrc, aoFechar, aoSalvar }) => {
+export const ModalCorteImagem: React.FC<PropsModalCortarImagem> = ({ aberto, imagemSrc, aoFechar, aoSalvar }) => {
     const [escala, setEscala] = useState(1);
     const [posicao, setPosicao] = useState({ x: 0, y: 0 });
     const [arrastando, setArrastando] = useState(false);

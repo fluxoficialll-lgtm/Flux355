@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 import { HookConfiguracoes } from '../hooks/Hook.Configuracoes';
 import { Footer } from '../Componentes/layout/Footer';
 import { SessaoConta } from '../Componentes/ComponentesDeConfiguracaoAppFlux/SessaoConta';

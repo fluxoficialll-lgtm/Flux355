@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { usePerfilProprioGradeFotos } from '../../hooks/Hook.Perfil.Proprio.Grade.Fotos';
-import { LoadingScreen } from '../ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 interface Photo {
     id: string;
@@ -17,7 +17,7 @@ export const GradeDeFotos: React.FC<PhotoGridProps> = ({ userId, onPhotoClick })
     const { fotos, loading, error } = usePerfilProprioGradeFotos(userId);
 
     if (loading) {
-        return <LoadingScreen />;
+        return <ModalTelaCarregamento />;
     }
 
     if (error) {

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/ModalSystem';
+import { useModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
 
 // Mock implementation since the real API is not available
 const mockNotificationsAPI = {

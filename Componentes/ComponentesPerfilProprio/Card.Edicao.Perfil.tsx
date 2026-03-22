@@ -1,8 +1,8 @@
 
 import React, { useRef } from 'react';
 import { useEditProfile } from '../../hooks/Hook.Editar.Perfil';
-import { ImageCropModal } from '../ComponenteDeInterfaceDeUsuario/ImageCropModal';
-import { LoadingScreen } from '../ComponenteDeInterfaceDeUsuario/LoadingScreen';
+import { ModalCorteImagem } from '../ComponenteDeInterfaceDeUsuario/Modal.Corte.Imagem';
+import { ModalTelaCarregamento } from '../ComponenteDeInterfaceDeUsuario/Modal.Tela.Carregamento';
 
 export const CardEdicaoPerfil: React.FC = () => {
   const {
@@ -24,7 +24,7 @@ export const CardEdicaoPerfil: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (fetching) {
-    return <LoadingScreen message='Carregando perfil...' />;
+    return <ModalTelaCarregamento message='Carregando perfil...' />;
   }
 
   return (
@@ -106,13 +106,13 @@ export const CardEdicaoPerfil: React.FC = () => {
             }
         `}</style>
 
-        {loading && <LoadingScreen message='Salvando alterações...' />}
+        {loading && <ModalTelaCarregamento message='Salvando alterações...' />}
 
-        <ImageCropModal
-            isOpen={isCropOpen}
-            onClose={() => setIsCropOpen(false)}
-            image={rawImage}
-            onCropped={handleCroppedImage}
+        <ModalCorteImagem
+            aberto={isCropOpen}
+            aoFechar={() => setIsCropOpen(false)}
+            imagemSrc={rawImage}
+            aoSalvar={handleCroppedImage}
         />
 
         <form onSubmit={handleSubmit} className="profile-edit-card">
