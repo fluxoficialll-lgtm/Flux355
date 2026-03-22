@@ -24,7 +24,6 @@ const VARIAVEIS_OBRIGATORIAS = [
     'JWT_SECRET',
     'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',
-    'GOOGLE_REDIRECT_URI', // Adicionado para o fluxo OAuth
     'CORS_ORIGIN',
 ];
 
@@ -62,7 +61,6 @@ const configFinal = {
     google: {
         clientId: VariaveisBackend.GOOGLE_CLIENT_ID,
         clientSecret: VariaveisBackend.GOOGLE_CLIENT_SECRET,
-        redirectUri: VariaveisBackend.GOOGLE_REDIRECT_URI,
     }
 };
 
