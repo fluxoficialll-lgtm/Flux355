@@ -71,6 +71,7 @@ const createAuthService = () => {
     };
 
     const executeAuthRequest = async (request: RequisicaoAutenticacao) => {
+        LogSupremo.Depuracao.log("Executando requisição de autenticação:", request);
         setState({ loading: true, error: null });
         
         // 1. Executa a requisição e obtém o resultado bruto.
@@ -128,6 +129,7 @@ const createAuthService = () => {
             return executeAuthRequest(request);
         },
         async loginWithGoogle(code: string, referredBy?: string) {
+            LogSupremo.Depuracao.log("loginWithGoogle chamado com:", { code, referredBy });
             const request = criarRequisicaoLoginGoogle(code, referredBy);
             const response = await executeAuthRequest(request);
             if (response && response.user) {

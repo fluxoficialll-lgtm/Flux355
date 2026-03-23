@@ -11,6 +11,7 @@
 import { rastreadorDeEventos } from './Rastreador.Eventos.js';
 import  ServicoLog  from './ServicoDeLog.js';
 import LogRequisicoesAPI from './Log.Requisicoes.API.ts'; // Importa o novo módulo
+import DepuracaoLogger from './Depuracao.Logger.ts';
 
 /**
  * @object LogSupremo
@@ -20,10 +21,12 @@ import LogRequisicoesAPI from './Log.Requisicoes.API.ts'; // Importa o novo mód
  * @property {object} Auditoria - Módulo de auditoria para ações críticas.
  * @property {object} Log - Módulo de logging geral da aplicação.
  * @property {object} API - Módulo de logging para requisições da API.
+ * @property {object} Depuracao - Módulo de logging para depuração.
  */
 export const LogSupremo = {
   Rastreamento: rastreadorDeEventos,
   Auditoria: {},
   Log: ServicoLog,
   API: LogRequisicoesAPI, // Expõe o novo módulo
+  Depuracao: DepuracaoLogger,
 };

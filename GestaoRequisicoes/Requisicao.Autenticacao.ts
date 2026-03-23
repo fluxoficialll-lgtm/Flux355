@@ -3,6 +3,7 @@ import { LoginUsuarioDTO as LoginComEmailESenha, RegistroUsuarioDTO as RegistroC
 import { servicoGestaoConta } from '../ServiçosFrontend/ServiçoDeAutenticação/Servico.Gestao.Conta';
 import { servicoGestaoLogin } from '../ServiçosFrontend/ServiçoDeAutenticação/Servico.Gestao.Login';
 import { servicoGestaoLogout } from '../ServiçosFrontend/ServiçoDeAutenticação/Servico.Gestao.Logout';
+import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
 
 // --- Tipos de Log ---
 
@@ -101,6 +102,7 @@ export const manipularRequisicaoAutenticacao = async (req: RequisicaoAutenticaca
                 resultado = await servicoGestaoConta.criarConta(req.payload);
                 break;
             case 'LOGIN_GOOGLE':
+                LogSupremo.Depuracao.log("Payload do LOGIN_GOOGLE sendo processado:", req.payload);
                 resultado = await servicoGestaoLogin.handleGoogleCallback(req.payload.code, req.payload.referredBy);
                 break;
             case 'LOGOUT':

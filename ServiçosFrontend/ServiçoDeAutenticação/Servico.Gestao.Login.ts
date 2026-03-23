@@ -4,6 +4,7 @@ import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import ClienteBackend from '../Cliente.Backend';
 import servicoMetodoGoogle from './Servico.Metodo.Google';
 import { servicoMetodoEmailSenha } from './Servico.Metodo.EmailSenha';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
 
 /**
  * @file Gerencia o processo de login, seja por email/senha ou via Google,
@@ -13,13 +14,16 @@ import { servicoMetodoEmailSenha } from './Servico.Metodo.EmailSenha';
 // --- Manipulador Central da Sessão ---
 // Função auxiliar para padronizar o que acontece após qualquer tipo de login bem-sucedido.
 const handleSuccessfulLogin = (authResult: { token: string; user: Usuario | null, isNewUser?: boolean }) => {
+    LogSupremo.Depuracao.log("Iniciando handleSuccessfulLogin com:", authResult);
     const { token, user, isNewUser } = authResult;
     if (token && user) {
         localStorage.setItem('userToken', token);
         localStorage.setItem('user', JSON.stringify(user));
         ClienteBackend.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        LogSupremo.Depuracao.log("Sessão do usuário armazenada com sucesso.", { token, user, isNewUser });
         return { token, user, isNewUser };
     }
+    LogSupremo.Depuracao.error("handleSuccessfulLogin falhou: token ou usuário ausente.");
     throw new Error('Resultado de autenticação inválido recebido.');
 };
 
@@ -46,8 +50,15 @@ const servicoGestaoLogin = {
      * @param referredBy O código de referência de afiliado (opcional).
      */
     handleGoogleCallback: async (code: string, referredBy?: string) => {
-        const authResult = await servicoMetodoGoogle.handleAuthCallback(code, referredBy);
-        return handleSuccessfulLogin(authResult);
+        LogSupremo.Depuracao.log("handleGoogleCallback chamado com:", { code, referredBy });
+        try {
+            const authResult = await servicoMetodoGoogle.handleAuthCallback(code, referredBy);
+            LogSupremo.Depuracao.log("Resultado recebido de handleAuthCallback:", authResult);
+            return handleSuccessfulLogin(authResult);
+        } catch (error) {
+            LogSupremo.Depuracao.error("Erro em handleGoogleCallback:", error);
+            throw error;
+        }
     },
 };
 

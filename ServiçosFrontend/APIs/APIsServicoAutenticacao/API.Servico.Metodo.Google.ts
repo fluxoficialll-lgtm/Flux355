@@ -2,6 +2,7 @@
 import VariaveisFrontend from '../../Config/Variaveis.Frontend';
 import ClienteBackend from '../../Cliente.Backend';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
+import { LogSupremo } from '../../SistemaObservabilidade/Log.Supremo';
 
 /**
  * @file Implementação real da API para autenticação com Google.
@@ -9,15 +10,14 @@ import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 
 /**
  * Redireciona o navegador do usuário para a página de autenticação do Google.
- * A página de consentimento do Google fará o redirecionamento de volta para a URI especificada.
  */
 export const redirectToGoogleAuth = (): void => {
-    console.log("API Real Google: Redirecionando para autenticação Google...");
+    LogSupremo.Depuracao.log("API Real Google: Redirecionando para autenticação Google...");
 
     const googleClientId = VariaveisFrontend.googleClientId;
 
     if (!googleClientId || googleClientId === 'CHAVE_NAO_DEFINIDA') {
-        console.error("Client ID do Google não configurado. Abortando autenticação.");
+        LogSupremo.Depuracao.error("Client ID do Google não configurado. Abortando autenticação.");
         throw new Error("O login com Google não está configurado.");
     }
 
@@ -38,15 +38,21 @@ export const redirectToGoogleAuth = (): void => {
 
 /**
  * Lida com o callback do Google, enviando o código de autorização para o backend.
- * @param code O código de autorização retornado pelo Google.
- * @param referredBy O código de referência de afiliado (opcional).
- * @returns Uma promessa que resolve com o token JWT, os dados do usuário e um booleano indicando se é um novo usuário.
  */
 export const handleAuthCallback = async (code: string, referredBy?: string): Promise<{ token: string; user: Usuario | null, isNewUser?: boolean }> => {
     if (!code) {
+        LogSupremo.Depuracao.error("handleAuthCallback falhou: código de autorização do Google não recebido.");
         throw new Error('O código de autorização do Google não foi recebido.');
     }
-    console.log("API Real Google: Enviando código para o backend...", { code, referredBy });
-    const response = await ClienteBackend.post('/auth/google', { code, referredBy });
-    return response.data;
+
+    LogSupremo.Depuracao.log("API Real Google: Enviando código para o backend...", { code, referredBy });
+
+    try {
+        const response = await ClienteBackend.post('/auth/google', { code, referredBy });
+        LogSupremo.Depuracao.log("Resposta recebida do backend:", response.data);
+        return response.data;
+    } catch (error) {
+        LogSupremo.Depuracao.error("Erro ao enviar código para o backend:", error);
+        throw error;
+    }
 };
