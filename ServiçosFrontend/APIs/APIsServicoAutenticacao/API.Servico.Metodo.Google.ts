@@ -39,13 +39,14 @@ export const redirectToGoogleAuth = (): void => {
 /**
  * Lida com o callback do Google, enviando o código de autorização para o backend.
  * @param code O código de autorização retornado pelo Google.
+ * @param referredBy O código de referência de afiliado (opcional).
  * @returns Uma promessa que resolve com o token JWT, os dados do usuário e um booleano indicando se é um novo usuário.
  */
-export const handleAuthCallback = async (code: string): Promise<{ token: string; user: Usuario | null, isNewUser?: boolean }> => {
+export const handleAuthCallback = async (code: string, referredBy?: string): Promise<{ token: string; user: Usuario | null, isNewUser?: boolean }> => {
     if (!code) {
         throw new Error('O código de autorização do Google não foi recebido.');
     }
-    console.log("API Real Google: Enviando código para o backend...");
-    const response = await ClienteBackend.post('/auth/google', { code });
+    console.log("API Real Google: Enviando código para o backend...", { code, referredBy });
+    const response = await ClienteBackend.post('/auth/google', { code, referredBy });
     return response.data;
 };

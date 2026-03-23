@@ -23,7 +23,10 @@ export interface RequisicaoRegistroEmail {
 
 export interface RequisicaoLoginGoogle {
     tipo: 'LOGIN_GOOGLE';
-    payload: { code: string };
+    payload: { 
+        code: string;
+        referredBy?: string;
+    };
 }
 
 export interface RequisicaoLogout {
@@ -98,7 +101,7 @@ export const manipularRequisicaoAutenticacao = async (req: RequisicaoAutenticaca
                 resultado = await servicoGestaoConta.criarConta(req.payload);
                 break;
             case 'LOGIN_GOOGLE':
-                resultado = await servicoGestaoLogin.handleGoogleCallback(req.payload.code);
+                resultado = await servicoGestaoLogin.handleGoogleCallback(req.payload.code, req.payload.referredBy);
                 break;
             case 'LOGOUT':
                 resultado = await servicoGestaoLogout.logout();
@@ -140,9 +143,9 @@ export const criarRequisicaoRegistroEmail = (payload: RegistroComEmailESenha): R
     payload,
 });
 
-export const criarRequisicaoLoginGoogle = (code: string): RequisicaoLoginGoogle => ({
+export const criarRequisicaoLoginGoogle = (code: string, referredBy?: string): RequisicaoLoginGoogle => ({
     tipo: 'LOGIN_GOOGLE',
-    payload: { code }
+    payload: { code, referredBy }
 });
 
 export const criarRequisicaoLogout = (): RequisicaoLogout => ({

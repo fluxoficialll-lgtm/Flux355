@@ -15,7 +15,7 @@ import * as SimulacaoGoogle from '../ServiçoDeSimulação/simulacoes/Simulacao.
 // Garante que ambas as implementações (real e simulada) sigam o mesmo contrato.
 interface IServicoMetodoGoogle {
     redirectToGoogleAuth(): void;
-    handleAuthCallback(code: string): Promise<{ token: string; user: Usuario | null, isNewUser?: boolean }>;
+    handleAuthCallback(code: string, referredBy?: string): Promise<{ token: string; user: Usuario | null, isNewUser?: boolean }>;
 }
 
 // --- Seleção da Implementação ---

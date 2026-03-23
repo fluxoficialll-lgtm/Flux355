@@ -43,9 +43,10 @@ const servicoGestaoLogin = {
     /**
      * Lida com o callback do Google, trocando o código de autorização por um token de sessão.
      * @param code O código de autorização fornecido pelo Google no redirecionamento.
+     * @param referredBy O código de referência de afiliado (opcional).
      */
-    handleGoogleCallback: async (code: string) => {
-        const authResult = await servicoMetodoGoogle.handleAuthCallback(code);
+    handleGoogleCallback: async (code: string, referredBy?: string) => {
+        const authResult = await servicoMetodoGoogle.handleAuthCallback(code, referredBy);
         return handleSuccessfulLogin(authResult);
     },
 };
