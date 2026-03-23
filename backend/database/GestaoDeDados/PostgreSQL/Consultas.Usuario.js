@@ -2,8 +2,6 @@
 import pool from '../../pool.js';
 import Log from '../../../Logs/BK.Log.Supremo.js';
 
-const logger = Log.createLogger('Consultas.Usuario');
-
 const criar = async (dadosUsuario) => {
     const cliente = await pool.connect();
     
@@ -27,24 +25,24 @@ const criar = async (dadosUsuario) => {
 
     try {
         await cliente.query('BEGIN');
-        logger.info('DB_TX_CREATE_USER_BEGIN', { message: "Iniciando transação para criar novo usuário.", email });
+        Log.database.info('Iniciando transação para criar novo usuário.', { event: 'DB_TX_CREATE_USER_BEGIN', email });
 
         await cliente.query(queryUser, valuesUser);
-        logger.debug('DB_TX_CREATE_USER_INSERT_USERS', { message: "Inserido na tabela users.", userId: id });
+        Log.database.debug('Inserido na tabela users.', { event: 'DB_TX_CREATE_USER_INSERT_USERS', userId: id });
 
         await cliente.query(queryProfile, valuesProfile);
-        logger.debug('DB_TX_CREATE_USER_INSERT_PROFILES', { message: "Inserido na tabela profiles.", userId: id });
+        Log.database.debug('Inserido na tabela profiles.', { event: 'DB_TX_CREATE_USER_INSERT_PROFILES', userId: id });
 
         await cliente.query('COMMIT');
-        logger.info('DB_TX_CREATE_USER_COMMIT', { message: "Transação concluída. Usuário criado com sucesso.", userId: id });
+        Log.database.info('Transação concluída. Usuário criado com sucesso.', { event: 'DB_TX_CREATE_USER_COMMIT', userId: id });
 
         // Após criar, busca o usuário completo para retornar
         return await encontrarPorId(id, cliente); 
 
     } catch (error) {
         await cliente.query('ROLLBACK');
-        logger.error('DB_TX_CREATE_USER_ROLLBACK', {
-            message: 'Erro na transação de criação de usuário. Rollback executado.',
+        Log.database.error('Erro na transação de criação de usuário. Rollback executado.', {
+            event: 'DB_TX_CREATE_USER_ROLLBACK',
             errorMessage: error.message,
             stack: error.stack,
             errorCode: error.code
@@ -71,14 +69,14 @@ const queryJoin = `
 
 const encontrarPorId = async (id, cliente = pool) => {
     const query = `${queryJoin} WHERE u.id = $1`;
-    logger.info('DB_FIND_USER_BY_ID_START', { message: `Buscando usuário com o id: ${id}` });
+    Log.database.info(`Buscando usuário com o id: ${id}`, { event: 'DB_FIND_USER_BY_ID_START' });
     
     try {
         const { rows } = await cliente.query(query, [id]);
         return rows[0];
     } catch (error) {
-        logger.error('DB_FIND_USER_BY_ID_ERROR', {
-            message: 'Erro ao buscar usuário por ID',
+        Log.database.error('Erro ao buscar usuário por ID', {
+            event: 'DB_FIND_USER_BY_ID_ERROR',
             errorMessage: error.message,
             stack: error.stack,
             userId: id
@@ -89,14 +87,14 @@ const encontrarPorId = async (id, cliente = pool) => {
 
 const encontrarPorEmail = async (email) => {
     const query = `${queryJoin} WHERE u.email = $1`;
-    logger.info('DB_FIND_USER_BY_EMAIL_START', { message: `Buscando usuário com o email: ${email}` });
+    Log.database.info(`Buscando usuário com o email: ${email}`, { event: 'DB_FIND_USER_BY_EMAIL_START' });
     
     try {
         const { rows } = await pool.query(query, [email]);
         return rows[0];
     } catch (error) {
-        logger.error('DB_FIND_USER_BY_EMAIL_ERROR', {
-            message: 'Erro ao buscar usuário por email',
+        Log.database.error('Erro ao buscar usuário por email', {
+            event: 'DB_FIND_USER_BY_EMAIL_ERROR',
             errorMessage: error.message,
             stack: error.stack,
             email
@@ -107,14 +105,14 @@ const encontrarPorEmail = async (email) => {
 
 const encontrarPorGoogleId = async (googleId) => {
     const query = `${queryJoin} WHERE u.google_id = $1`;
-    logger.info('DB_FIND_USER_BY_GOOGLE_ID_START', { message: `Buscando usuário com o Google ID: ${googleId}` });
+    Log.database.info(`Buscando usuário com o Google ID: ${googleId}`, { event: 'DB_FIND_USER_BY_GOOGLE_ID_START' });
 
     try {
         const { rows } = await pool.query(query, [googleId]);
         return rows[0];
     } catch (error) {
-        logger.error('DB_FIND_USER_BY_GOOGLE_ID_ERROR', {
-            message: 'Erro ao buscar usuário por Google ID',
+        Log.database.error('Erro ao buscar usuário por Google ID', {
+            event: 'DB_FIND_USER_BY_GOOGLE_ID_ERROR',
             errorMessage: error.message,
             stack: error.stack,
             googleId
@@ -142,29 +140,29 @@ const atualizar = async (idUsuario, dados) => {
 
     try {
         await cliente.query('BEGIN');
-        logger.info('DB_TX_UPDATE_USER_BEGIN', { message: `Iniciando transação para atualizar o usuário ${idUsuario}.` });
+        Log.database.info(`Iniciando transação para atualizar o usuário ${idUsuario}.`, { event: 'DB_TX_UPDATE_USER_BEGIN' });
 
         if (Object.keys(dadosUser).length > 0) {
             const queryUser = buildUpdateQuery('users', dadosUser, 'id', idUsuario);
             await cliente.query(queryUser.query, queryUser.values);
-            logger.debug('DB_TX_UPDATE_USER_USERS_UPDATED', { message: "Tabela 'users' atualizada.", userId: idUsuario });
+            Log.database.debug("Tabela 'users' atualizada.", { event: 'DB_TX_UPDATE_USER_USERS_UPDATED', userId: idUsuario });
         }
 
         if (Object.keys(dadosProfile).length > 0) {
             const queryProfile = buildUpdateQuery('profiles', dadosProfile, 'user_id', idUsuario);
             await cliente.query(queryProfile.query, queryProfile.values);
-            logger.debug('DB_TX_UPDATE_USER_PROFILES_UPDATED', { message: "Tabela 'profiles' atualizada.", userId: idUsuario });
+            Log.database.debug("Tabela 'profiles' atualizada.", { event: 'DB_TX_UPDATE_USER_PROFILES_UPDATED', userId: idUsuario });
         }
 
         await cliente.query('COMMIT');
-        logger.info('DB_TX_UPDATE_USER_COMMIT', { message: `Transação de atualização para o usuário ${idUsuario} concluída.` });
+        Log.database.info(`Transação de atualização para o usuário ${idUsuario} concluída.`, { event: 'DB_TX_UPDATE_USER_COMMIT' });
         
         return await encontrarPorId(idUsuario, cliente);
 
     } catch (error) {
         await cliente.query('ROLLBACK');
-        logger.error('DB_TX_UPDATE_USER_ROLLBACK', {
-            message: `Erro na transação de atualização. Rollback para o usuário ${idUsuario}.`,
+        Log.database.error(`Erro na transação de atualização. Rollback para o usuário ${idUsuario}.`, {
+            event: 'DB_TX_UPDATE_USER_ROLLBACK',
             errorMessage: error.message,
             stack: error.stack,
             userId: idUsuario

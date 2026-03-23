@@ -2,23 +2,21 @@
 import consultasUsuario from '../database/GestaoDeDados/PostgreSQL/Consultas.Usuario.js';
 import Log from '../Logs/BK.Log.Supremo.js';
 
-const logger = Log.createLogger('Repositorio.Usuario');
-
 const criar = async (dadosUsuario) => {
-    logger.info('DB_CREATE_USER_START', { 
-        message: 'Chamando camada de gestão de dados para criar usuário.',
+    Log.database.info('Chamando camada de gestão de dados para criar usuário.', { 
+        event: 'DB_CREATE_USER_START',
         email: dadosUsuario.email 
     });
     try {
         const novoUsuario = await consultasUsuario.criar(dadosUsuario);
-        logger.info('DB_CREATE_USER_SUCCESS', { 
-            message: 'Usuário criado com sucesso na gestão de dados.',
+        Log.database.info('Usuário criado com sucesso na gestão de dados.', { 
+            event: 'DB_CREATE_USER_SUCCESS',
             userId: novoUsuario.id 
         });
         return novoUsuario;
     } catch (error) {
-        logger.error('DB_CREATE_USER_ERROR', { 
-            message: 'Erro ao criar usuário na gestão de dados',
+        Log.database.error('Erro ao criar usuário na gestão de dados', { 
+            event: 'DB_CREATE_USER_ERROR',
             errorMessage: error.message,
             stack: error.stack
         });
@@ -27,20 +25,20 @@ const criar = async (dadosUsuario) => {
 };
 
 const encontrarPorEmail = async (email) => {
-    logger.info('DB_FIND_BY_EMAIL_START', { 
-        message: 'Chamando camada de gestão de dados para buscar usuário por email.',
+    Log.database.info('Chamando camada de gestão de dados para buscar usuário por email.', { 
+        event: 'DB_FIND_BY_EMAIL_START',
         email 
     });
     try {
         const usuario = await consultasUsuario.encontrarPorEmail(email);
-        logger.info(usuario ? 'DB_FIND_BY_EMAIL_FOUND' : 'DB_FIND_BY_EMAIL_NOT_FOUND', { 
-            message: usuario ? 'Usuário encontrado.' : 'Usuário não encontrado.',
+        Log.database.info(usuario ? 'Usuário encontrado.' : 'Usuário não encontrado.', { 
+            event: usuario ? 'DB_FIND_BY_EMAIL_FOUND' : 'DB_FIND_BY_EMAIL_NOT_FOUND',
             email 
         });
         return usuario;
     } catch (error) {
-        logger.error('DB_FIND_BY_EMAIL_ERROR', { 
-            message: 'Erro ao buscar usuário por email na gestão de dados',
+        Log.database.error('Erro ao buscar usuário por email na gestão de dados', { 
+            event: 'DB_FIND_BY_EMAIL_ERROR',
             errorMessage: error.message,
             stack: error.stack
          });
@@ -49,20 +47,20 @@ const encontrarPorEmail = async (email) => {
 };
 
 const encontrarPorGoogleId = async (googleId) => {
-    logger.info('DB_FIND_BY_GOOGLE_ID_START', { 
-        message: 'Chamando camada de gestão de dados para buscar usuário por Google ID.',
+    Log.database.info('Chamando camada de gestão de dados para buscar usuário por Google ID.', { 
+        event: 'DB_FIND_BY_GOOGLE_ID_START',
         googleId 
     });
     try {
         const usuario = await consultasUsuario.encontrarPorGoogleId(googleId);
-        logger.info(usuario ? 'DB_FIND_BY_GOOGLE_ID_FOUND' : 'DB_FIND_BY_GOOGLE_ID_NOT_FOUND', { 
-            message: usuario ? 'Usuário encontrado.' : 'Usuário não encontrado.',
+        Log.database.info(usuario ? 'Usuário encontrado.' : 'Usuário não encontrado.', { 
+            event: usuario ? 'DB_FIND_BY_GOOGLE_ID_FOUND' : 'DB_FIND_BY_GOOGLE_ID_NOT_FOUND',
             googleId 
         });
         return usuario;
     } catch (error) {
-        logger.error('DB_FIND_BY_GOOGLE_ID_ERROR', { 
-            message: 'Erro ao buscar usuário por Google ID na gestão de dados',
+        Log.database.error('Erro ao buscar usuário por Google ID na gestão de dados', { 
+            event: 'DB_FIND_BY_GOOGLE_ID_ERROR',
             errorMessage: error.message,
             stack: error.stack
          });
@@ -71,20 +69,20 @@ const encontrarPorGoogleId = async (googleId) => {
 };
 
 const atualizar = async (idUsuario, dados) => {
-    logger.info('DB_UPDATE_USER_START', { 
-        message: 'Chamando camada de gestão de dados para atualizar usuário.',
+    Log.database.info('Chamando camada de gestão de dados para atualizar usuário.', { 
+        event: 'DB_UPDATE_USER_START',
         idUsuario 
     });
     try {
         const usuarioAtualizado = await consultasUsuario.atualizar(idUsuario, dados);
-        logger.info('DB_UPDATE_USER_SUCCESS', { 
-            message: 'Usuário atualizado com sucesso na gestão de dados.',
+        Log.database.info('Usuário atualizado com sucesso na gestão de dados.', { 
+            event: 'DB_UPDATE_USER_SUCCESS',
             idUsuario 
         });
         return usuarioAtualizado;
     } catch (error) {
-        logger.error('DB_UPDATE_USER_ERROR', { 
-            message: 'Erro ao atualizar usuário na gestão de dados',
+        Log.database.error('Erro ao atualizar usuário na gestão de dados', { 
+            event: 'DB_UPDATE_USER_ERROR',
             errorMessage: error.message,
             stack: error.stack
         });
