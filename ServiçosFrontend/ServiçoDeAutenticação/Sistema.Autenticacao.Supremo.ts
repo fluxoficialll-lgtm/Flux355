@@ -1,6 +1,6 @@
 
 import { config } from '../ValidaçãoDeAmbiente/config';
-import logger from '../logger';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1'; // Caminho do log corrigido
 import { RegistroUsuarioDTO, LoginUsuarioDTO } from '../../../types/Entrada/Dto.Estrutura.Usuario';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
@@ -45,7 +45,7 @@ const createAuthService = () => {
     };
 
     const notify = () => {
-        logger.log('[AuthService] Notificando listeners:', currentState);
+        LogSupremo.Log.info('[AuthService] Notificando listeners:', currentState);
         listeners.forEach(listener => listener(currentState));
     };
 
@@ -63,7 +63,7 @@ const createAuthService = () => {
 
         } catch (error: any) {
             if (!signal.aborted) {
-                logger.error('[AuthService] Falha na validação inicial:', error);
+                LogSupremo.Log.error('[AuthService] Falha na validação inicial:', error);
                 setState({ user: null, loading: false, error });
                 await service.logout();
             }
@@ -92,7 +92,7 @@ const createAuthService = () => {
             default:
                 // Fallback para um tipo de requisição não esperado.
                 const erroMsg = "Tipo de requisição de autenticação não reconhecido no Sistema Supremo.";
-                logger.error(erroMsg, request);
+                LogSupremo.Log.error(erroMsg, request);
                 setState({ loading: false, error: new Error(erroMsg) });
                 throw new Error(erroMsg);
         }
@@ -160,6 +160,6 @@ const createAuthService = () => {
 // --- Singleton Export ---
 const SistemaAutenticacaoSupremo = createAuthService();
 
-logger.log(`[AuthService] Sistema de Autenticação (full-cycle) inicializado em modo: ${config.VITE_APP_ENV}`);
+LogSupremo.Log.info(`[AuthService] Sistema de Autenticação (full-cycle) inicializado em modo: ${config.VITE_APP_ENV}`);
 
 export default SistemaAutenticacaoSupremo;

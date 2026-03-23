@@ -1,5 +1,5 @@
 
-import validationLogger, { ILogger } from "../ServiçosFrontend/Logs.Requisicoes.Supremas";
+import { LogSupremo } from "../ServiçosFrontend/SistemaObservabilidade/Log.Supremo1";
 import {
     manipularRequisicaoAutenticacao,
     RequisicaoAutenticacao,
@@ -30,9 +30,9 @@ const isRequisicaoPerfil = (req: RequisicaoSuprema): req is RequisicaoPerfil => 
  * Processa uma lista de eventos de log usando o logger central.
  */
 const processarLogs = (logs: LogEntry[]) => {
-    const logger: ILogger = validationLogger;
+    const logger = LogSupremo.Log;
     logs.forEach(log => {
-        logger[log.level](...log.messages);
+        (logger as any)[log.level](...log.messages);
     });
 };
 
@@ -56,7 +56,7 @@ export const processarRequisicao = async (req: RequisicaoSuprema) => {
         resultado = resposta;
     } else {
         const errorMessage = `Tipo de requisição desconhecido: ${(req as any).tipo}`;
-        validationLogger.error(errorMessage);
+        LogSupremo.Log.error(errorMessage);
         resultado = { 
             sucesso: false, 
             mensagem: errorMessage 

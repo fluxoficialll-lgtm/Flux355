@@ -1,5 +1,5 @@
 
-import logger from '../logger';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1'; // Caminho do log corrigido
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import ClienteBackend from '../Cliente.Backend';
@@ -14,7 +14,7 @@ const realSessionService = {
             const item = localStorage.getItem('user');
             return item ? JSON.parse(item) : null;
         } catch (error) {
-            logger.error('[SessionManager] Erro ao buscar usuário do localStorage:', error);
+            LogSupremo.Log.error('[SessionManager] Erro ao buscar usuário do localStorage:', error);
             return null;
         }
     },

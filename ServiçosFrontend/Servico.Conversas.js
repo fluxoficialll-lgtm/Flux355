@@ -1,6 +1,6 @@
 
 import ClienteBackend from './Cliente.Backend.js';
-import ServicoLog from './ServicoLogs/ServicoDeLog.js';
+import { LogSupremo } from './SistemaObservabilidade/Log.Supremo1.ts';
 
 const ServicoConversas = {
     obterConversas: async () => {
@@ -14,7 +14,7 @@ const ServicoConversas = {
 
             // O traceId pode ser acessado para logs de serviço específicos, se necessário.
             const traceId = response.config.metadata.traceId;
-            ServicoLog.info(contexto, 'Conversas obtidas com sucesso.', { traceId });
+            LogSupremo.Log.info('Conversas obtidas com sucesso.', { contexto, traceId });
 
             return response.data; // Retorna apenas os dados, como o axios faz.
 
@@ -22,7 +22,8 @@ const ServicoConversas = {
             // O erro já foi logado pelo interceptor do ClienteBackend.
             // Podemos adicionar um log contextual aqui se quisermos, mas o essencial já foi feito.
             const errorMessage = error.response?.data?.message || 'Falha ao buscar conversas.';
-            ServicoLog.erro(contexto, errorMessage, { 
+            LogSupremo.Log.error(errorMessage, { 
+                contexto,
                 // Opcional: obter o traceId do erro para consistência
                 traceId: error.config?.metadata?.traceId 
             });

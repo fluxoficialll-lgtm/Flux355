@@ -3,7 +3,7 @@ import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 import { config } from '../ValidaçãoDeAmbiente/config';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
-import logger from '../logger';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1'; // Caminho do log corrigido
 
 interface User extends Usuario {}
 
@@ -20,14 +20,14 @@ const sincronizarDadosUsuario = async (): Promise<User> => {
         if (data && data.user) {
             // Atualiza o usuário no localStorage
             localStorage.setItem('user', JSON.stringify(data.user));
-            logger.log('[SyncService] Dados do usuário sincronizados com sucesso.', data.user);
+            LogSupremo.Log.info('[SyncService] Dados do usuário sincronizados com sucesso.', data.user);
             return data.user;
         }
         
         throw new Error('Resposta da sincronização de perfil inválida.');
 
     } catch (error) {
-        logger.error('[SyncService] Falha ao sincronizar dados do usuário:', error);
+        LogSupremo.Log.error('[SyncService] Falha ao sincronizar dados do usuário:', error);
         // Em caso de falha, poderia decidir se deve limpar a sessão ou não.
         // Por enquanto, apenas propaga o erro.
         throw error;
@@ -40,7 +40,7 @@ const sincronizarDadosUsuario = async (): Promise<User> => {
  * @returns {Promise<User>} Os dados do usuário simulados.
  */
 const simulatedSincronizarDadosUsuario = async (): Promise<User> => {
-    logger.log('[SyncService] Iniciando sincronização simulada...');
+    LogSupremo.Log.info('[SyncService] Iniciando sincronização simulada...');
     await new Promise(resolve => setTimeout(resolve, 500)); // Simula latência de rede
     
     const currentUser = servicoGestaoSessao.getCurrentUser();
@@ -52,7 +52,7 @@ const simulatedSincronizarDadosUsuario = async (): Promise<User> => {
     // Na simulação, podemos apenas retornar o usuário atual
     // ou talvez adicionar um campo para mostrar que foi "sincronizado"
     const syncedUser = { ...currentUser, lastSynced: new Date().toISOString() };
-    logger.log('[SyncService] Sincronização simulada concluída.', syncedUser);
+    LogSupremo.Log.info('[SyncService] Sincronização simulada concluída.', syncedUser);
 
     return syncedUser as User;
 };

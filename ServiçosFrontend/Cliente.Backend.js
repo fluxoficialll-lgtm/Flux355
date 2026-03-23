@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import VariaveisFrontend from './Config/Variaveis.Frontend.js';
-import ServicoLog from './SistemaObservabilidade/ServicoDeLog.js';
+import { LogSupremo } from './SistemaObservabilidade/Log.Supremo1';
 
 const ClienteBackend = axios.create({
     baseURL: VariaveisFrontend.apiBaseUrl,
@@ -38,7 +38,7 @@ ClienteBackend.interceptors.request.use(
             config.headers['Authorization'] = `Bearer ${token}`;
         }
 
-        ServicoLog.info(
+        LogSupremo.Log.info(
             'ClienteBackend.Request',
             `▶️ ${config.method.toUpperCase()} ${config.url}`,
             { payload: config.data },
@@ -47,7 +47,7 @@ ClienteBackend.interceptors.request.use(
         return config;
     },
     (error) => {
-        ServicoLog.erro('ClienteBackend.Request.Error', 'Erro ao configurar a requisição', error);
+        LogSupremo.Log.error('ClienteBackend.Request.Error', 'Erro ao configurar a requisição', error);
         return Promise.reject(error);
     }
 );
@@ -58,7 +58,7 @@ ClienteBackend.interceptors.response.use(
         const duration = Date.now() - response.config.metadata.startTime;
         const { traceId } = response.config.metadata;
 
-        ServicoLog.info(
+        LogSupremo.Log.info(
             'ClienteBackend.Response',
             `✅ ${response.status} ${response.config.url} em ${duration}ms`,
             { status: response.status, duration },
@@ -87,7 +87,7 @@ ClienteBackend.interceptors.response.use(
             originalRequest._retry = true;
             isRefreshing = true;
 
-            ServicoLog.warn(contexto, 'Token expirado. Tentando renovar...', { traceId });
+            LogSupremo.Log.warn(contexto, 'Token expirado. Tentando renovar...', { traceId });
 
             try {
                 // Assumindo que você tem um endpoint para renovar o token.
@@ -99,12 +99,12 @@ ClienteBackend.interceptors.response.use(
                 ClienteBackend.defaults.headers.common['Authorization'] = 'Bearer ' + novoToken;
                 originalRequest.headers['Authorization'] = 'Bearer ' + novoToken;
                 
-                ServicoLog.info(contexto, 'Token renovado com sucesso.', { traceId });
+                LogSupremo.Log.info(contexto, 'Token renovado com sucesso.', { traceId });
                 processQueue(null, novoToken);
 
                 return ClienteBackend(originalRequest);
             } catch (refreshError) {
-                ServicoLog.erro(contexto, 'Falha ao renovar o token. Deslogando usuário.', refreshError, traceId);
+                LogSupremo.Log.error(contexto, 'Falha ao renovar o token. Deslogando usuário.', refreshError, traceId);
                 processQueue(refreshError, null);
 
                 localStorage.removeItem('userToken');
@@ -119,7 +119,7 @@ ClienteBackend.interceptors.response.use(
         }
 
         const errorMessage = error.response ? `❌ ${error.response.status} ${originalRequest.url} em ${duration}ms` : `Erro de rede em ${originalRequest.url}`;
-        ServicoLog.erro(contexto, errorMessage, {
+        LogSupremo.Log.error(contexto, errorMessage, {
             traceId,
             status: error.response?.status,
             duration,

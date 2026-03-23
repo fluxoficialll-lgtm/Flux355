@@ -1,4 +1,4 @@
-import { rastreadorDeEventos } from '../SistemaObservabilidade/Rastreador.Eventos.js';
+import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo1.ts';
 import { ERROR_LEVEL } from './TiposDeErro.ts';
 
 // Adicionamos um parâmetro opcional de navegação
@@ -6,7 +6,7 @@ export const handleError = (error: Error, context: any = {}, navigate?: (path: s
   const level = classifyError(error);
 
   // A telemetria continua registrando o erro
-  rastreadorDeEventos.trackCriticalError(error, context);
+  LogSupremo.Rastreamento.trackCriticalError(error, context);
 
   // O log de console também é mantido
   console.error('[ERROR_HANDLER]', {
