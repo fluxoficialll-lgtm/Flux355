@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo'; 
 import { trackingService } from '../ServiçosFrontend/ServiçoDeRastreamento/ServiçoDeRastreamento.js';
 import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
+import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo'; // Importa o logger supremo
 
 // Hook especializado para o login com Email/Senha
 export const useLoginEmailSenha = () => {
@@ -37,13 +38,16 @@ export const useLoginEmailSenha = () => {
         
         setProcessando(true);
         setErro('');
+        LogSupremo.Hook.LoginEmailSenha.inicioLogin(email); // Log de início
 
         try {
             const result = await SistemaAutenticacaoSupremo.login({ email, senha });
             if (result && result.user) {
+                LogSupremo.Hook.LoginEmailSenha.loginSucesso(result.user.id, email); // Log de sucesso
                 handleRedirect(result.user);
             }
         } catch (err: any) {
+            LogSupremo.Hook.LoginEmailSenha.loginFalha(email, err); // Log de falha
             setErro(err.message || 'Credenciais inválidas.');
             setProcessando(false);
         }

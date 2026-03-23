@@ -1,8 +1,9 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 import { trackingService } from '../ServiçosFrontend/ServiçoDeRastreamento/ServiçoDeRastreamento.js';
-import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo.ts';
+import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
 
 export const useGoogleLogin = () => {
     const location = useLocation();
@@ -12,30 +13,35 @@ export const useGoogleLogin = () => {
     useEffect(() => {
         try {
             trackingService.captureUrlParams();
-        } catch (error) {
-            LogSupremo.Depuracao.error("Falha ao capturar parâmetros de URL para rastreamento:", error);
+        } catch (error: any) {
+            // Usando o logger de falhas do próprio hook para consistência
+            LogSupremo.Hook.LoginGoogle.loginFalha(error, 'captura_parametros_url');
         }
     }, [location]);
 
     const submeterLoginGoogle = useCallback(async (credentialResponse: any) => {
-        LogSupremo.Depuracao.log("Iniciando login com Google...");
+        LogSupremo.Hook.LoginGoogle.inicioFluxo();
 
         if (!credentialResponse || !credentialResponse.credential) {
-            LogSupremo.Depuracao.error("Credencial do Google inválida.");
-            setErro(new Error("Credencial do Google inválida."));
+            const credencialInvalidaErro = new Error("A credencial do Google fornecida é inválida ou nula.");
+            LogSupremo.Hook.LoginGoogle.loginFalha(credencialInvalidaErro, 'validacao_credencial');
+            setErro(credencialInvalidaErro);
             return;
         }
 
+        LogSupremo.Hook.LoginGoogle.callbackRecebido(credentialResponse.credential.substring(0, 15) + '...');
         setProcessando(true);
         setErro(null);
 
         try {
             const referredBy = trackingService.getAffiliateRef() || undefined;
-            LogSupremo.Depuracao.log("Referral code:", referredBy);
-            await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, referredBy);
-            LogSupremo.Depuracao.log("Login com Google concluído com sucesso.");
-        } catch (err) {
-            LogSupremo.Depuracao.error("Erro durante o login com Google:", err);
+            // Supondo que o serviço de autenticação retorne o usuário e se ele é novo
+            const { user, isNewUser } = await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, referredBy);
+            
+            LogSupremo.Hook.LoginGoogle.loginSucesso(user.id, isNewUser);
+
+        } catch (err: any) {
+            LogSupremo.Hook.LoginGoogle.loginFalha(err, 'submissao_login');
             setErro(err);
         } finally {
             setProcessando(false);

@@ -22,6 +22,9 @@ import LogCache from './Log.Cache';
 import Alertas from './Log.Alertas';
 import SnapshotEstado from './Log.Snapshot.Estado';
 import LogHook from './Log.Hook';
+import LogSessaoUsuario from './Log.Hook.Sessao.Usuario';
+import LogLoginEmailSenha from './Log.Hook.Login.Email.Senha';
+import LogLoginGoogle from './Log.Hook.Login.Google'; // Importa o novo logger
 
 /**
  * @object LogSupremo
@@ -66,5 +69,10 @@ export const LogSupremo = {
   Snapshot: SnapshotEstado,
 
   /** Módulo de logging para hooks da UI. */
-  Hook: LogHook,
+  Hook: {
+    ...LogHook, // Mantém os logs genéricos de hook
+    Sessao: LogSessaoUsuario,
+    LoginEmailSenha: LogLoginEmailSenha,
+    LoginGoogle: LogLoginGoogle, // Adiciona o logger específico para login com Google
+  },
 };
