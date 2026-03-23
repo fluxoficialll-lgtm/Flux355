@@ -1,8 +1,8 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 
-const logger = createLogger('PayPalProvider');
+const logger = Log.createLogger('PayPalProvider');
 
 // Funções de controle para o provedor PayPal
 

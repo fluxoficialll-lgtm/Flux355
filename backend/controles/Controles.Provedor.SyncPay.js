@@ -1,8 +1,8 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 
-const logger = createLogger('SyncPayProvider');
+const logger = Log.createLogger('SyncPayProvider');
 
 // Funções de controle para o provedor SyncPay
 

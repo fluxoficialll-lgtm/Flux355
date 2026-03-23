@@ -1,10 +1,10 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import Stripe from 'stripe';
 import config from '../config/Variaveis.Backend.js';
 
-const logger = createLogger('StripeConnect');
+const logger = Log.createLogger('StripeConnect');
 
 let stripe = null;
 if (config.stripeSecretKey) {
@@ -16,7 +16,7 @@ if (config.stripeSecretKey) {
 
 const createAccountLink = async (req, res) => {
     if (!stripe) {
-        logger.error('STRIPE_CONNECT_UNAVAILABLE', new Error('Stripe not configured'));
+        logger.error('STRIPE_CONNECT_UNAVAILABLE', { errorMessage: 'Stripe not configured' });
         return ServicoHTTPResposta.erro(res, "O sistema de pagamentos não está configurado. Contate o suporte.", 503);
     }
 
@@ -34,14 +34,14 @@ const createAccountLink = async (req, res) => {
         logger.info('STRIPE_CREATE_ACCOUNT_LINK_SUCCESS', { accountId });
         return ServicoHTTPResposta.sucesso(res, { url: accountLink.url });
     } catch (error) {
-        logger.error('STRIPE_CREATE_ACCOUNT_LINK_ERROR', error, { accountId });
+        logger.error('STRIPE_CREATE_ACCOUNT_LINK_ERROR', { errorMessage: error.message, accountId });
         return ServicoHTTPResposta.erro(res, 'Falha ao criar link de conta Stripe.', 400, error.message);
     }
 };
 
 const getAccountDetails = async (req, res) => {
     if (!stripe) {
-        logger.error('STRIPE_CONNECT_UNAVAILABLE', new Error('Stripe not configured'));
+        logger.error('STRIPE_CONNECT_UNAVAILABLE', { errorMessage: 'Stripe not configured' });
         return ServicoHTTPResposta.erro(res, "O sistema de pagamentos não está configurado. Contate o suporte.", 503);
     }
 
@@ -53,22 +53,20 @@ const getAccountDetails = async (req, res) => {
         logger.info('STRIPE_GET_ACCOUNT_DETAILS_SUCCESS', { accountId });
         return ServicoHTTPResposta.sucesso(res, account);
     } catch (error) {
-        logger.error('STRIPE_GET_ACCOUNT_DETAILS_ERROR', error, { accountId });
+        logger.error('STRIPE_GET_ACCOUNT_DETAILS_ERROR', { errorMessage: error.message, accountId });
         return ServicoHTTPResposta.erro(res, 'Falha ao obter detalhes da conta Stripe.', 400, error.message);
     }
 };
 
 const disconnectAccount = (req, res) => {
-    const { accountId } = req.body; // Supondo que o ID da conta venha no corpo
+    const { accountId } = req.body;
     logger.warn('STRIPE_DISCONNECT_ACCOUNT_REQUESTED', { accountId });
 
     if (!stripe) {
-        logger.error('STRIPE_CONNECT_UNAVAILABLE', new Error('Stripe not configured'));
+        logger.error('STRIPE_CONNECT_UNAVAILABLE', { errorMessage: 'Stripe not configured' });
         return ServicoHTTPResposta.erro(res, "O sistema de pagamentos não está configurado. Contate o suporte.", 503);
     }
     
-    // A lógica de desconexão real (chamada à API da Stripe para desautorizar a conta) iria aqui.
-    // Por enquanto, apenas registramos a intenção.
     logger.info('STRIPE_DISCONNECT_ACCOUNT_IMPLEMENTATION_PENDING', { accountId });
 
     return ServicoHTTPResposta.sucesso(res, { message: "A funcionalidade de desconexão da conta Stripe foi registrada, mas a implementação final está pendente." });

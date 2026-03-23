@@ -1,14 +1,14 @@
 
-// backend/controles/Controle.Sessao.js
-
 import { OAuth2Client } from 'google-auth-library';
 import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import servicoSessao from '../ServicosBackend/Servico.Sessao.js';
 import ServicoResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
-import ServicoLog from '../ServicosBackend/Servico.Logs.Backend.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 import validadorSessao from '../validators/Validator.Estrutura.Sessao.js';
 import variaveis from '../config/Variaveis.Backend.js';
+import Log from '../Logs/BK.Log.Supremo.js';
+
+const logger = Log.createLogger('Controle.Sessao');
 
 const oAuth2Client = new OAuth2Client(
   variaveis.google.clientId,
@@ -17,12 +17,11 @@ const oAuth2Client = new OAuth2Client(
 );
 
 const registrar = async (req, res) => {
-    const contexto = "Controle.Sessao.registrar";
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
 
     try {
         const dadosUsuarioValidados = validadorUsuario.validarRegistro(req.body);
-        ServicoLog.info(contexto, 'Iniciando registro de usuário', { email: dadosUsuarioValidados.email });
+        logger.info('INICIANDO_REGISTRO', { email: dadosUsuarioValidados.email });
 
         const usuario = await servicoUsuario.registrarNovoUsuario(dadosUsuarioValidados);
 
@@ -32,11 +31,11 @@ const registrar = async (req, res) => {
 
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
-        ServicoLog.info(contexto, 'Registro e sessão criados com sucesso', { userId: usuario.id });
+        logger.info('REGISTRO_SUCESSO', { userId: usuario.id });
         return ServicoResposta.sucesso(res, { token, user: usuario.paraRespostaHttp() }, 201);
 
     } catch (error) {
-        ServicoLog.erro(contexto, error.message, { email: req.body.email });
+        logger.error('FALHA_REGISTRO', { email: req.body.email, errorMessage: error.message });
         if (error.message.includes('está em uso')) {
             return ServicoResposta.conflito(res, error.message);
         }
@@ -45,12 +44,11 @@ const registrar = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    const contexto = "Controle.Sessao.login";
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
 
     try {
         const dadosLoginValidados = validadorUsuario.validarLogin(req.body);
-        ServicoLog.info(contexto, 'Iniciando login de usuário', { email: dadosLoginValidados.email });
+        logger.info('INICIANDO_LOGIN', { email: dadosLoginValidados.email });
 
         const usuario = await servicoUsuario.autenticarUsuarioPorCredenciais(dadosLoginValidados);
 
@@ -60,11 +58,11 @@ const login = async (req, res) => {
 
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
-        ServicoLog.info(contexto, 'Login e sessão criados com sucesso', { userId: usuario.id });
+        logger.info('LOGIN_SUCESSO', { userId: usuario.id });
         return ServicoResposta.sucesso(res, { token, user: usuario.paraRespostaHttp() });
 
     } catch (error) {
-        ServicoLog.erro(contexto, error.message, { email: req.body.email });
+        logger.error('FALHA_LOGIN', { email: req.body.email, errorMessage: error.message });
         if (error.message.includes('Credenciais inválidas')) {
             return ServicoResposta.nãoAutorizado(res, error.message);
         }
@@ -73,7 +71,6 @@ const login = async (req, res) => {
 };
 
 const googleAuth = async (req, res) => {
-    const contexto = "Controle.Sessao.googleAuth";
     const dadosRequisicao = { userAgent: req.headers['user-agent'], ipAddress: req.ip };
     const { code } = req.body;
 
@@ -82,12 +79,12 @@ const googleAuth = async (req, res) => {
     }
 
     try {
-        ServicoLog.info(contexto, 'Iniciando troca de código de autorização Google');
+        logger.info('INICIANDO_GOOGLE_AUTH');
         
         const { tokens } = await oAuth2Client.getToken(code);
         
         if (!tokens.id_token) {
-            ServicoLog.erro(contexto, 'ID token não encontrado na resposta do Google');
+            logger.error('GOOGLE_AUTH_NO_ID_TOKEN');
             return ServicoResposta.erro(res, "Falha ao obter o ID token do Google.");
         }
 
@@ -117,7 +114,7 @@ const googleAuth = async (req, res) => {
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
 
-        ServicoLog.info(contexto, 'Autenticação Google e sessão processados com sucesso', { userId: usuario.id });
+        logger.info('GOOGLE_AUTH_SUCESSO', { userId: usuario.id });
         return ServicoResposta.sucesso(res, { 
             token, 
             user: usuario.paraRespostaHttp(),
@@ -125,7 +122,7 @@ const googleAuth = async (req, res) => {
         });
 
     } catch (error) {
-        ServicoLog.erro(contexto, `Falha na autenticação com Google: ${error.message}`, { error });
+        logger.error('FALHA_GOOGLE_AUTH', { errorMessage: error.message, error });
         if (error.message.includes('Faça login com sua senha')) {
             return ServicoResposta.conflito(res, error.message);
         }
@@ -134,17 +131,17 @@ const googleAuth = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-    const contexto = "Controle.Sessao.logout";
     try {
         const token = req.headers['authorization']?.split(' ')[1];
         if (!token) {
             return ServicoResposta.nãoAutorizado(res, 'Token não fornecido');
         }
         await servicoSessao.encerrarSessao(token);
+        logger.info('LOGOUT_SUCESSO');
         return ServicoResposta.sucesso(res, { message: 'Logout bem-sucedido' });
 
     } catch (error) {
-        ServicoLog.erro(contexto, error.message);
+        logger.error('FALHA_LOGOUT', { errorMessage: error.message });
         return ServicoResposta.erro(res, 'Falha ao fazer logout');
     }
 };

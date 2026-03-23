@@ -1,9 +1,9 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import * as reelsCommentMetricsService from '../ServicosBackend/Servicos.Metricas.Comentario.Reels.js';
 
-const logger = createLogger('ReelsCommentMetrics');
+const logger = Log.createLogger('ReelsCommentMetrics');
 
 async function trackComment(req, res) {
     const { commentData } = req.body;
@@ -14,7 +14,7 @@ async function trackComment(req, res) {
         logger.info('METRIC_COMMENT_TRACK_SUCCESS', { reelId: commentData?.reelId });
         return ServicoHTTPResposta.sucesso(res, { message: 'Metric tracked successfully' });
     } catch (error) {
-        logger.error('METRIC_COMMENT_TRACK_ERROR', error, { data: commentData });
+        logger.error('METRIC_COMMENT_TRACK_ERROR', { errorMessage: error.message, data: commentData });
         return ServicoHTTPResposta.erro(res, 'Error tracking metric', 500, error.message);
     }
 }
@@ -28,7 +28,7 @@ async function trackCommentLike(req, res) {
         logger.info('METRIC_COMMENT_LIKE_TRACK_SUCCESS', { commentId });
         return ServicoHTTPResposta.sucesso(res, { message: 'Metric tracked successfully' });
     } catch (error) {
-        logger.error('METRIC_COMMENT_LIKE_TRACK_ERROR', error, { commentId });
+        logger.error('METRIC_COMMENT_LIKE_TRACK_ERROR', { errorMessage: error.message, commentId });
         return ServicoHTTPResposta.erro(res, 'Error tracking metric', 500, error.message);
     }
 }
@@ -42,7 +42,7 @@ async function trackCommentReply(req, res) {
         logger.info('METRIC_COMMENT_REPLY_TRACK_SUCCESS', { commentId });
         return ServicoHTTPResposta.sucesso(res, { message: 'Metric tracked successfully' });
     } catch (error) {
-        logger.error('METRIC_COMMENT_REPLY_TRACK_ERROR', error, { commentId, data: replyData });
+        logger.error('METRIC_COMMENT_REPLY_TRACK_ERROR', { errorMessage: error.message, commentId, data: replyData });
         return ServicoHTTPResposta.erro(res, 'Error tracking metric', 500, error.message);
     }
 }

@@ -1,11 +1,11 @@
 
 // backend/controles/Controles.Publicacao.Reels.js
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoReels from '../ServicosBackend/Servicos.Publicacao.Reels.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarPublicacaoReels } from '../validators/Validator.Estrutura.Publicacao.Reels.js';
 
-const logger = createLogger('Reels');
+const logger = Log.createLogger('Reels');
 
 const createReel = async (req, res) => {
     const userId = req.user.id;
@@ -40,7 +40,7 @@ const getAllReels = async (req, res) => {
         logger.info('REELS_GET_ALL_SUCCESS', { count: reels.length });
         ServicoHTTPResposta.sucesso(res, reels);
     } catch (error) {
-        logger.error('REELS_GET_ALL_ERROR', error);
+        logger.error('REELS_GET_ALL_ERROR', { errorMessage: error.message });
         ServicoHTTPResposta.erro(res, error.message, 500, error.message);
     }
 };
@@ -57,7 +57,7 @@ const getReelById = async (req, res) => {
         logger.info('REEL_GET_BY_ID_SUCCESS', { reelId });
         ServicoHTTPResposta.sucesso(res, reel);
     } catch (error) {
-        logger.error('REEL_GET_BY_ID_ERROR', error, { reelId });
+        logger.error('REEL_GET_BY_ID_ERROR', { errorMessage: error.message, reelId });
         ServicoHTTPResposta.erro(res, error.message, 500, error.message);
     }
 };
@@ -71,7 +71,7 @@ const updateReel = async (req, res) => {
         logger.info('REEL_UPDATE_SUCCESS', { reelId, userId });
         ServicoHTTPResposta.sucesso(res, updatedReel);
     } catch (error) {
-        logger.error('REEL_UPDATE_ERROR', error, { reelId, userId, data: req.body });
+        logger.error('REEL_UPDATE_ERROR', { errorMessage: error.message, reelId, userId, data: req.body });
         ServicoHTTPResposta.erro(res, error.message, 400, error.message);
     }
 };
@@ -85,7 +85,7 @@ const deleteReel = async (req, res) => {
         logger.info('REEL_DELETE_SUCCESS', { reelId, userId });
         ServicoHTTPResposta.semConteudo(res);
     } catch (error) {
-        logger.error('REEL_DELETE_ERROR', error, { reelId, userId });
+        logger.error('REEL_DELETE_ERROR', { errorMessage: error.message, reelId, userId });
         ServicoHTTPResposta.erro(res, error.message, 400, error.message);
     }
 };

@@ -1,9 +1,10 @@
 
 import pool from '../../pool.js';
-import ServicoLog from '../../../ServicosBackend/Servico.Logs.Backend.js';
+import Log from '../../../Logs/BK.Log.Supremo.js';
+
+const logger = Log.createLogger('Consultas.Usuario');
 
 const criar = async (dadosUsuario) => {
-    const contexto = "Consultas.Usuario.criar";
     const cliente = await pool.connect();
     
     const { 
@@ -26,23 +27,28 @@ const criar = async (dadosUsuario) => {
 
     try {
         await cliente.query('BEGIN');
-        ServicoLog.info(contexto, "Iniciando transação para criar novo usuário.", { email });
+        logger.info('DB_TX_CREATE_USER_BEGIN', { message: "Iniciando transação para criar novo usuário.", email });
 
         await cliente.query(queryUser, valuesUser);
-        ServicoLog.debug(contexto, "Inserido na tabela users.", { userId: id });
+        logger.debug('DB_TX_CREATE_USER_INSERT_USERS', { message: "Inserido na tabela users.", userId: id });
 
         await cliente.query(queryProfile, valuesProfile);
-        ServicoLog.debug(contexto, "Inserido na tabela profiles.", { userId: id });
+        logger.debug('DB_TX_CREATE_USER_INSERT_PROFILES', { message: "Inserido na tabela profiles.", userId: id });
 
         await cliente.query('COMMIT');
-        ServicoLog.info(contexto, "Transação concluída. Usuário criado com sucesso.", { userId: id });
+        logger.info('DB_TX_CREATE_USER_COMMIT', { message: "Transação concluída. Usuário criado com sucesso.", userId: id });
 
         // Após criar, busca o usuário completo para retornar
         return await encontrarPorId(id, cliente); 
 
     } catch (error) {
         await cliente.query('ROLLBACK');
-        ServicoLog.erro(contexto, 'Erro na transação de criação de usuário. Rollback executado.', error);
+        logger.error('DB_TX_CREATE_USER_ROLLBACK', {
+            message: 'Erro na transação de criação de usuário. Rollback executado.',
+            errorMessage: error.message,
+            stack: error.stack,
+            errorCode: error.code
+        });
         if (error.code === '23505') { // unique_violation
             throw new Error('Email ou ID do Google já está em uso.');
         }
@@ -64,49 +70,60 @@ const queryJoin = `
 `;
 
 const encontrarPorId = async (id, cliente = pool) => {
-    const contexto = "Consultas.Usuario.encontrarPorId";
     const query = `${queryJoin} WHERE u.id = $1`;
-    ServicoLog.info(contexto, `Buscando usuário com o id: ${id}`);
+    logger.info('DB_FIND_USER_BY_ID_START', { message: `Buscando usuário com o id: ${id}` });
     
     try {
         const { rows } = await cliente.query(query, [id]);
         return rows[0];
     } catch (error) {
-        ServicoLog.erro(contexto, 'Erro ao buscar usuário por ID', error);
+        logger.error('DB_FIND_USER_BY_ID_ERROR', {
+            message: 'Erro ao buscar usuário por ID',
+            errorMessage: error.message,
+            stack: error.stack,
+            userId: id
+        });
         throw new Error('Erro ao buscar usuário no banco de dados');
     }
 }
 
 const encontrarPorEmail = async (email) => {
-    const contexto = "Consultas.Usuario.encontrarPorEmail";
     const query = `${queryJoin} WHERE u.email = $1`;
-    ServicoLog.info(contexto, `Buscando usuário com o email: ${email}`);
+    logger.info('DB_FIND_USER_BY_EMAIL_START', { message: `Buscando usuário com o email: ${email}` });
     
     try {
         const { rows } = await pool.query(query, [email]);
         return rows[0];
     } catch (error) {
-        ServicoLog.erro(contexto, 'Erro ao buscar usuário por email', error);
+        logger.error('DB_FIND_USER_BY_EMAIL_ERROR', {
+            message: 'Erro ao buscar usuário por email',
+            errorMessage: error.message,
+            stack: error.stack,
+            email
+        });
         throw new Error('Erro ao buscar usuário no banco de dados');
     }
 };
 
 const encontrarPorGoogleId = async (googleId) => {
-    const contexto = "Consultas.Usuario.encontrarPorGoogleId";
     const query = `${queryJoin} WHERE u.google_id = $1`;
-    ServicoLog.info(contexto, `Buscando usuário com o Google ID: ${googleId}`);
+    logger.info('DB_FIND_USER_BY_GOOGLE_ID_START', { message: `Buscando usuário com o Google ID: ${googleId}` });
 
     try {
         const { rows } = await pool.query(query, [googleId]);
         return rows[0];
     } catch (error) {
-        ServicoLog.erro(contexto, 'Erro ao buscar usuário por Google ID', error);
+        logger.error('DB_FIND_USER_BY_GOOGLE_ID_ERROR', {
+            message: 'Erro ao buscar usuário por Google ID',
+            errorMessage: error.message,
+            stack: error.stack,
+            googleId
+        });
         throw new Error('Erro ao buscar usuário no banco de dados');
     }
 };
 
 const atualizar = async (idUsuario, dados) => {
-    const contexto = "Consultas.Usuario.atualizar";
     const cliente = await pool.connect();
 
     const camposTabelaUser = ['name', 'email', 'password_hash'];
@@ -125,35 +142,40 @@ const atualizar = async (idUsuario, dados) => {
 
     try {
         await cliente.query('BEGIN');
-        ServicoLog.info(contexto, `Iniciando transação para atualizar o usuário ${idUsuario}.`);
+        logger.info('DB_TX_UPDATE_USER_BEGIN', { message: `Iniciando transação para atualizar o usuário ${idUsuario}.` });
 
         if (Object.keys(dadosUser).length > 0) {
-            const queryUser = buildUpdateQuery('users', dadosUser, 'id');
+            const queryUser = buildUpdateQuery('users', dadosUser, 'id', idUsuario);
             await cliente.query(queryUser.query, queryUser.values);
-            ServicoLog.debug(contexto, "Tabela 'users' atualizada.", { userId: idUsuario });
+            logger.debug('DB_TX_UPDATE_USER_USERS_UPDATED', { message: "Tabela 'users' atualizada.", userId: idUsuario });
         }
 
         if (Object.keys(dadosProfile).length > 0) {
-            const queryProfile = buildUpdateQuery('profiles', dadosProfile, 'user_id');
+            const queryProfile = buildUpdateQuery('profiles', dadosProfile, 'user_id', idUsuario);
             await cliente.query(queryProfile.query, queryProfile.values);
-            ServicoLog.debug(contexto, "Tabela 'profiles' atualizada.", { userId: idUsuario });
+            logger.debug('DB_TX_UPDATE_USER_PROFILES_UPDATED', { message: "Tabela 'profiles' atualizada.", userId: idUsuario });
         }
 
         await cliente.query('COMMIT');
-        ServicoLog.info(contexto, `Transação de atualização para o usuário ${idUsuario} concluída.`);
+        logger.info('DB_TX_UPDATE_USER_COMMIT', { message: `Transação de atualização para o usuário ${idUsuario} concluída.` });
         
         return await encontrarPorId(idUsuario, cliente);
 
     } catch (error) {
         await cliente.query('ROLLBACK');
-        ServicoLog.erro(contexto, `Erro na transação de atualização. Rollback para o usuário ${idUsuario}.`, error);
+        logger.error('DB_TX_UPDATE_USER_ROLLBACK', {
+            message: `Erro na transação de atualização. Rollback para o usuário ${idUsuario}.`,
+            errorMessage: error.message,
+            stack: error.stack,
+            userId: idUsuario
+        });
         throw new Error('Erro ao atualizar usuário no banco de dados');
     } finally {
         cliente.release();
     }
 };
 
-const buildUpdateQuery = (tabela, dados, colunaId) => {
+const buildUpdateQuery = (tabela, dados, colunaId, idUsuario) => {
     const fields = Object.keys(dados);
     const values = Object.values(dados);
     const setClause = fields.map((field, index) => `"${field}" = $${index + 1}`).join(', ');

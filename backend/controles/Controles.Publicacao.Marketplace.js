@@ -1,11 +1,11 @@
 
 // backend/controles/Controles.Publicacao.Marketplace.js
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoMarketplace from '../ServicosBackend/Servicos.Publicacao.Marketplace.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarItemMarketplace } from '../validators/Validator.Estrutura.Publicacao.Marketplace.js';
 
-const logger = createLogger('Marketplace');
+const logger = Log.createLogger('Marketplace');
 
 const criarItem = async (req, res) => {
     const userId = req.user.id;
@@ -40,7 +40,7 @@ const obterTodosItens = async (req, res) => {
         logger.info('ITEMS_GET_ALL_SUCCESS', { count: items.length });
         ServicoHTTPResposta.sucesso(res, items);
     } catch (error) {
-        logger.error('ITEMS_GET_ALL_ERROR', error);
+        logger.error('ITEMS_GET_ALL_ERROR', { errorMessage: error.message });
         ServicoHTTPResposta.erro(res, error.message, 500, error.message);
     }
 };
@@ -57,7 +57,7 @@ const obterItemPorId = async (req, res) => {
         logger.info('ITEM_GET_BY_ID_SUCCESS', { itemId });
         ServicoHTTPResposta.sucesso(res, item);
     } catch (error) {
-        logger.error('ITEM_GET_BY_ID_ERROR', error, { itemId });
+        logger.error('ITEM_GET_BY_ID_ERROR', { errorMessage: error.message, itemId });
         ServicoHTTPResposta.erro(res, error.message, 500, error.message);
     }
 };
@@ -71,7 +71,7 @@ const atualizarItem = async (req, res) => {
         logger.info('ITEM_UPDATE_SUCCESS', { itemId, userId });
         ServicoHTTPResposta.sucesso(res, updatedItem);
     } catch (error) {
-        logger.error('ITEM_UPDATE_ERROR', error, { itemId, userId, data: req.body });
+        logger.error('ITEM_UPDATE_ERROR', { errorMessage: error.message, itemId, userId, data: req.body });
         ServicoHTTPResposta.erro(res, error.message, 400, error.message);
     }
 };
@@ -85,7 +85,7 @@ const deletarItem = async (req, res) => {
         logger.info('ITEM_DELETE_SUCCESS', { itemId, userId });
         ServicoHTTPResposta.semConteudo(res);
     } catch (error) {
-        logger.error('ITEM_DELETE_ERROR', error, { itemId, userId });
+        logger.error('ITEM_DELETE_ERROR', { errorMessage: error.message, itemId, userId });
         ServicoHTTPResposta.erro(res, error.message, 400, error.message);
     }
 };

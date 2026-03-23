@@ -1,10 +1,10 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoComentariosReels from '../ServicosBackend/Servicos.Publicacao.Comentarios.Reels.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';
 
-const logger = createLogger('ReelsComments');
+const logger = Log.createLogger('ReelsComments');
 
 const createComment = async (req, res) => {
     const { reelId } = req.params;
@@ -51,7 +51,7 @@ const getCommentsForReel = async (req, res) => {
         logger.info('REEL_COMMENTS_GET_SUCCESS', { reelId, count: comments.length });
         ServicoHTTPResposta.sucesso(res, comments);
     } catch (error) {
-        logger.error('REEL_COMMENTS_GET_ERROR', error, { reelId });
+        logger.error('REEL_COMMENTS_GET_ERROR', { errorMessage: error.message, reelId });
         ServicoHTTPResposta.erro(res, error.message, error.statusCode || 500, error.message);
     }
 };
@@ -65,7 +65,7 @@ const updateComment = async (req, res) => {
         logger.info('REEL_COMMENT_UPDATE_SUCCESS', { commentId, userId });
         ServicoHTTPResposta.sucesso(res, updatedComment);
     } catch (error) {
-        logger.error('REEL_COMMENT_UPDATE_ERROR', error, { commentId, userId, data: req.body });
+        logger.error('REEL_COMMENT_UPDATE_ERROR', { errorMessage: error.message, commentId, userId, data: req.body });
         ServicoHTTPResposta.erro(res, error.message, error.statusCode || 500, error.message);
     }
 };
@@ -79,7 +79,7 @@ const deleteComment = async (req, res) => {
         logger.info('REEL_COMMENT_DELETE_SUCCESS', { commentId, userId });
         ServicoHTTPResposta.semConteudo(res);
     } catch (error) {
-        logger.error('REEL_COMMENT_DELETE_ERROR', error, { commentId, userId });
+        logger.error('REEL_COMMENT_DELETE_ERROR', { errorMessage: error.message, commentId, userId });
         ServicoHTTPResposta.erro(res, error.message, error.statusCode || 500, error.message);
     }
 };

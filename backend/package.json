@@ -3,6 +3,7 @@
   "dependencies": {
     "cls-hooked": "^4.2.2",
     "google-auth-library": "^10.6.2",
+    "pino": "^10.3.1",
     "uuid": "^13.0.0"
   }
 }

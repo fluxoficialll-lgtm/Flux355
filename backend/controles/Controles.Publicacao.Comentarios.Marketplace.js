@@ -1,10 +1,10 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoComentariosMarketplace from '../ServicosBackend/Servicos.Publicacao.Comentarios.Marketplace.js';
 import ServicoRespostaHTTP from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';
 
-const logger = createLogger('MarketplaceComments');
+const logger = Log.createLogger('MarketplaceComments');
 
 const criarComentario = async (req, res) => {
     const { itemId } = req.params;
@@ -57,7 +57,7 @@ const obterComentariosPorItemId = async (req, res) => {
 
         return ServicoRespostaHTTP.sucesso(res, comentarios);
     } catch (error) {
-        logger.error('COMMENT_MARKETPLACE_GET_ERROR', error, { itemId });
+        logger.error('COMMENT_MARKETPLACE_GET_ERROR', { errorMessage: error.message, itemId });
 
         return ServicoRespostaHTTP.erro(res, 'Falha ao buscar comentários.', 500, error.message);
     }
@@ -76,7 +76,7 @@ const atualizarComentario = async (req, res) => {
         
         return ServicoRespostaHTTP.sucesso(res, comentarioAtualizado, "Comentário atualizado com sucesso");
     } catch (error) {
-        logger.error('COMMENT_MARKETPLACE_UPDATE_ERROR', error, { commentId, userId });
+        logger.error('COMMENT_MARKETPLACE_UPDATE_ERROR', { errorMessage: error.message, commentId, userId });
 
         return ServicoRespostaHTTP.erro(res, 'Falha ao atualizar comentário.', 500, error.message);
     }
@@ -95,7 +95,7 @@ const deletarComentario = async (req, res) => {
 
         return ServicoRespostaHTTP.sucesso(res, null, "Comentário deletado com sucesso");
     } catch (error) {
-        logger.error('COMMENT_MARKETPLACE_DELETE_ERROR', error, { commentId, userId });
+        logger.error('COMMENT_MARKETPLACE_DELETE_ERROR', { errorMessage: error.message, commentId, userId });
         
         return ServicoRespostaHTTP.erro(res, 'Falha ao deletar comentário.', 500, error.message);
     }

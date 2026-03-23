@@ -1,9 +1,9 @@
 
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import servicoConversas from '../ServicosBackend/Servico.Conversas.js';
 import ServicoRespostaHTTP from '../ServicosBackend/Servico.HTTP.Resposta.js';
 
-const logger = createLogger('Conversas');
+const logger = Log.createLogger('Conversas');
 
 const obterConversas = async (req, res) => {
     const userId = req.user.id;
@@ -16,7 +16,7 @@ const obterConversas = async (req, res) => {
         
         return ServicoRespostaHTTP.sucesso(res, conversas, "Conversas obtidas com sucesso");
     } catch (error) {
-        logger.error('CONVERSAS_GET_ERROR', error, { userId });
+        logger.error('CONVERSAS_GET_ERROR', { errorMessage: error.message, userId });
 
         return ServicoRespostaHTTP.erro(res, 'Falha ao obter conversas.', 500, error.message);
     }

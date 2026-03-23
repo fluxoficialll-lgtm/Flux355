@@ -1,11 +1,11 @@
 
 // backend/controles/Controles.Publicacao.Comentarios.Feed.js
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoComentariosFeed from '../ServicosBackend/Servicos.Publicacao.Comentarios.Feed.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';
 
-const logger = createLogger('FeedComments');
+const logger = Log.createLogger('FeedComments');
 
 const criarComentario = async (req, res) => {
     const { postId } = req.params;
@@ -51,7 +51,7 @@ const obterComentariosPorPostId = async (req, res) => {
         logger.info('COMMENTS_GET_SUCCESS', { postId, count: comentarios.length });
         ServicoHTTPResposta.sucesso(res, comentarios);
     } catch (error) {
-        logger.error('COMMENTS_GET_ERROR', error, { postId });
+        logger.error('COMMENTS_GET_ERROR', { errorMessage: error.message, postId });
         ServicoHTTPResposta.erro(res, error.message, error.statusCode || 500, error.message);
     }
 };
@@ -65,7 +65,7 @@ const atualizarComentario = async (req, res) => {
         logger.info('COMMENT_UPDATE_SUCCESS', { commentId, userId });
         ServicoHTTPResposta.sucesso(res, comentarioAtualizado);
     } catch (error) {
-        logger.error('COMMENT_UPDATE_ERROR', error, { commentId, userId, data: req.body });
+        logger.error('COMMENT_UPDATE_ERROR', { errorMessage: error.message, commentId, userId, data: req.body });
         ServicoHTTPResposta.erro(res, error.message, error.statusCode || 500, error.message);
     }
 };
@@ -79,7 +79,7 @@ const deletarComentario = async (req, res) => {
         logger.info('COMMENT_DELETE_SUCCESS', { commentId, userId });
         ServicoHTTPResposta.semConteudo(res);
     } catch (error) {
-        logger.error('COMMENT_DELETE_ERROR', error, { commentId, userId });
+        logger.error('COMMENT_DELETE_ERROR', { errorMessage: error.message, commentId, userId });
         ServicoHTTPResposta.erro(res, error.message, error.statusCode || 500, error.message);
     }
 };

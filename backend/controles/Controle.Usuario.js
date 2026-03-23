@@ -1,40 +1,35 @@
 
-// backend/controles/Controle.Usuario.js
-
 import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import ServicoResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
-import ServicoLog from '../ServicosBackend/Servico.Logs.Backend.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 
+const logger = Log.createLogger('Controle.Usuario');
+
 const atualizarPerfil = async (req, res) => {
-    const contexto = "Controle.Usuario.atualizarPerfil";
-    const idUsuario = req.user.id; // Assumindo que o middleware de auth injeta o usuário no req
+    const idUsuario = req.user.id;
 
     try {
-        // 1. Validar a entrada
         const dadosValidados = validadorUsuario.validarAtualizacaoPerfil(req.body);
-        ServicoLog.info(contexto, `Iniciando atualização de perfil para o usuário ${idUsuario}`)
+        logger.info('INICIANDO_ATUALIZACAO_PERFIL', { userId: idUsuario });
 
-        // 2. Chamar o serviço com os dados validados
         const usuarioAtualizado = await servicoUsuario.atualizarPerfilUsuario(idUsuario, dadosValidados);
 
-        ServicoLog.info(contexto, `Perfil do usuário ${idUsuario} atualizado com sucesso`);
+        logger.info('PERFIL_ATUALIZADO_SUCESSO', { userId: idUsuario });
 
         return ServicoResposta.sucesso(res, { user: usuarioAtualizado.paraRespostaHttp() });
 
     } catch (error) {
-        ServicoLog.erro(contexto, error.message, { userId: idUsuario });
-        // Captura erros de validação e outros erros de serviço
+        logger.error('FALHA_ATUALIZACAO_PERFIL', { userId: idUsuario, errorMessage: error.message });
         return ServicoResposta.requisiçãoInválida(res, error.message);
     }
 };
 
 const obterPerfil = async (req, res) => {
-    const contexto = "Controle.Usuario.obterPerfil";
-    const idUsuario = req.params.id; // Ou de outra fonte, como o token
+    const idUsuario = req.params.id;
 
     try {
-        ServicoLog.info(contexto, `Buscando perfil para o usuário ${idUsuario}`);
+        logger.info('BUSCANDO_PERFIL_USUARIO', { userId: idUsuario });
 
         const usuario = await servicoUsuario.encontrarUsuarioPorId(idUsuario);
 
@@ -45,7 +40,7 @@ const obterPerfil = async (req, res) => {
         return ServicoResposta.sucesso(res, { user: usuario.paraRespostaHttp() });
 
     } catch (error) {
-        ServicoLog.erro(contexto, error.message, { userId: idUsuario });
+        logger.error('FALHA_BUSCAR_PERFIL', { userId: idUsuario, errorMessage: error.message });
         return ServicoResposta.erro(res, "Falha ao buscar perfil do usuário");
     }
 }

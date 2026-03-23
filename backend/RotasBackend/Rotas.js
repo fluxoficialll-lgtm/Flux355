@@ -1,6 +1,5 @@
 
 import express from 'express';
-import requestContextMiddleware from '../config/Middleware.Logs.js';
 
 // --- Novas Rotas Refatoradas ---
 import rotasSessao from './Rotas.Sessao.js';
@@ -32,7 +31,8 @@ import rotasCredencialStripe from './Rotas.Gestao.Credencial.Stripe.js';
 
 const router = express.Router();
 
-router.use(requestContextMiddleware);
+// A importação e o uso do middleware de log antigo foram removidos daqui.
+// O gerenciamento de log e contexto agora é feito globalmente no `setupMiddlewares`.
 
 // --- Autenticação e Gerenciamento de Usuário ---
 router.use('/auth', rotasSessao);

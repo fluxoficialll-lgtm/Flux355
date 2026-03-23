@@ -1,9 +1,9 @@
 
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
-import { createLogger } from '../ServicosBackend/Logger.js';
+import Log from '../Logs/BK.Log.Supremo.js';
 import ServicoGruposConfig from '../ServicosBackend/Servico.Grupos.Configuracoes.js';
 
-const logger = createLogger('Controles.Grupos.Configuracoes');
+const logger = Log.createLogger('Controles.Grupos.Configuracoes');
 
 class GruposConfiguracoesControle {
 
@@ -16,7 +16,7 @@ class GruposConfiguracoesControle {
             const resultado = await ServicoGruposConfig.atualizarConfiguracoes(groupId, configuracoes);
             return ServicoHTTPResposta.sucesso(res, resultado);
         } catch (error) {
-            logger.error('GROUP_SETTINGS_UPDATE_ERROR', error, { groupId });
+            logger.error('GROUP_SETTINGS_UPDATE_ERROR', { errorMessage: error.message, groupId });
             return ServicoHTTPResposta.erro(res, 'Falha ao atualizar configurações do grupo.', 500, error.message);
         }
     }
@@ -31,7 +31,7 @@ class GruposConfiguracoesControle {
             }
             return ServicoHTTPResposta.sucesso(res, resultado);
         } catch (error) {
-            logger.error('GROUP_SETTINGS_GET_ERROR', error, { groupId });
+            logger.error('GROUP_SETTINGS_GET_ERROR', { errorMessage: error.message, groupId });
             return ServicoHTTPResposta.erro(res, 'Falha ao obter configurações do grupo.', 500, error.message);
         }
     }
@@ -40,13 +40,10 @@ class GruposConfiguracoesControle {
         const { groupId } = req.params;
         try {
             logger.info(`Obtendo estatísticas para o grupo ${groupId}`);
-            // No momento, estamos retornando um objeto vazio. A lógica para buscar
-            // as estatísticas reais do grupo será implementada futuramente no
-            // 'ServicoGruposConfig.obterEstatisticas'.
-            const resultado = {}; // Simulação de resultado
+            const resultado = {};
             return ServicoHTTPResposta.sucesso(res, resultado);
         } catch (error) {
-            logger.error('GROUP_STATS_GET_ERROR', error, { groupId });
+            logger.error('GROUP_STATS_GET_ERROR', { errorMessage: error.message, groupId });
             return ServicoHTTPResposta.erro(res, 'Falha ao obter estatísticas do grupo.', 500, error.message);
         }
     }
@@ -61,7 +58,7 @@ class GruposConfiguracoesControle {
             }
             return ServicoHTTPResposta.sucesso(res, resultado);
         } catch (error) {
-            logger.error('GROUP_GUIDELINES_GET_ERROR', error, { groupId });
+            logger.error('GROUP_GUIDELINES_GET_ERROR', { errorMessage: error.message, groupId });
             return ServicoHTTPResposta.erro(res, 'Falha ao obter diretrizes do grupo.', 500, error.message);
         }
     }
@@ -75,7 +72,7 @@ class GruposConfiguracoesControle {
             const resultado = await ServicoGruposConfig.atualizarDiretrizes(groupId, diretrizes);
             return ServicoHTTPResposta.sucesso(res, resultado);
         } catch (error) {
-            logger.error('GROUP_GUIDELINES_UPDATE_ERROR', error, { groupId });
+            logger.error('GROUP_GUIDELINES_UPDATE_ERROR', { errorMessage: error.message, groupId });
             return ServicoHTTPResposta.erro(res, 'Falha ao atualizar diretrizes do grupo.', 500, error.message);
         }
     }
