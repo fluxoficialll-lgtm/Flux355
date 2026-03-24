@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { SistemaProvedores } from './Sistema.Provedores'; // Caminho e nome do componente atualizados
+import { SistemaProvedores } from './Provedores'; // Caminho e nome do componente atualizados
 import AppRoutes from '../routes/AppRoutes';
 
 const Maintenance = lazy(() => import('../pages/Maintenance'));
