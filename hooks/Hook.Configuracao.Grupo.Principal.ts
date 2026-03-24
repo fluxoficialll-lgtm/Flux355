@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SistemaGrupoSupremo } from '../ServiçosFrontend/ServiçoDeGrupos/Sistema.Grupo.Supremo';
-import { useUsuarioSessao } from './Hook.Usuario.Sessao';
+import { useAutenticacao } from './Hook.Autenticacao';
 
 interface Group {
     id: string;
@@ -20,7 +20,7 @@ interface Group {
 }
 
 export const HookConfiguracaoGrupoPrincipal = (groupId: string | undefined) => {
-    const { user } = useUsuarioSessao();
+    const { usuario } = useAutenticacao();
     const [group, setGroup] = useState<Group | null>(null);
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
@@ -35,7 +35,7 @@ export const HookConfiguracaoGrupoPrincipal = (groupId: string | undefined) => {
         try {
             const groupData = await SistemaGrupoSupremo.getGroupDetails(groupId);
             setGroup(groupData);
-            if (user && groupData.ownerId === user.id) {
+            if (usuario && groupData.ownerId === usuario.id) {
                 setIsOwner(true);
             } else {
                 setIsOwner(false);
@@ -46,7 +46,7 @@ export const HookConfiguracaoGrupoPrincipal = (groupId: string | undefined) => {
         } finally {
             setLoading(false);
         }
-    }, [groupId, user?.id]);
+    }, [groupId, usuario?.id]);
 
     useEffect(() => {
         fetchGroupDetails();

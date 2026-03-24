@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
 
-// Garantir que o objeto de log para Hook.Login.Google exista.
+// Garante que o objeto de log para Hook.Login.Google exista.
 if (!LogSupremo.Hook.LoginGoogle) {
     LogSupremo.Hook.LoginGoogle = {
         log: (estagio, dados) => LogSupremo.log('Hook.Login.Google', estagio, dados),
@@ -14,40 +14,39 @@ if (!LogSupremo.Hook.LoginGoogle) {
     };
 }
 
-export const useGoogleLogin = () => {
+export const useLoginGoogle = () => {
     const [processando, setProcessando] = useState(false);
-    const [erro, setErro] = useState<any>(null);
+    const [erro, setErro] = useState('');
 
-    const submeterLoginGoogle = useCallback(async (credentialResponse: any) => {
+    const loginComGoogle = useCallback(async (credentialResponse: any) => {
         LogSupremo.Hook.LoginGoogle.inicioFluxo();
 
         if (!credentialResponse || !credentialResponse.credential) {
             const credencialInvalidaErro = new Error("A credencial do Google fornecida é inválida ou nula.");
             LogSupremo.Hook.LoginGoogle.loginFalha(credencialInvalidaErro, 'validacao_credencial');
-            setErro(credencialInvalidaErro);
+            setErro(credencialInvalidaErro.message);
             return;
         }
 
         LogSupremo.Hook.LoginGoogle.callbackRecebido(credentialResponse.credential.substring(0, 15) + '...');
         setProcessando(true);
-        setErro(null);
+        setErro('');
 
         try {
-            const { user, isNewUser } = await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, undefined);
-            
-            LogSupremo.Hook.LoginGoogle.loginSucesso(user.id, isNewUser);
-
+            const { user: loggedInUser, isNewUser } = await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, undefined);
+            LogSupremo.Hook.LoginGoogle.loginSucesso(loggedInUser.id, isNewUser);
         } catch (err: any) {
             LogSupremo.Hook.LoginGoogle.loginFalha(err, 'submissao_login');
-            setErro(err);
+            setErro(err.message || 'Falha no login com Google.');
         } finally {
             setProcessando(false);
         }
     }, []);
 
     return {
-        processando,
-        erro,
-        submeterLoginGoogle,
+        processandoLoginGoogle: processando,
+        erroLoginGoogle: erro,
+        setErroLoginGoogle: setErro,
+        loginComGoogle,
     };
 };

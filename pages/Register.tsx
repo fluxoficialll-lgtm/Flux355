@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useUsuarioSessao } from '../hooks/Hook.Usuario.Sessao';
+import { useAutenticacao } from '../hooks/Hook.Autenticacao';
 import { useHookCriacaoPerfilFlux } from '../hooks/Hook.Criacao.Perfil.Flux';
 import { CardCriacaoContaEmailSenha } from '../Componentes/ComponentesDeAuth/Componentes/Card.Criacao.Conta.Email.Senha';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useUsuarioSessao();
+  const { usuario: user, carregandoSessao: authLoading } = useAutenticacao();
   const {
     dados,
     updateField,

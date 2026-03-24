@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useUsuarioSessao } from '../hooks/Hook.Usuario.Sessao';
+import { useAutenticacao } from '../hooks/Hook.Autenticacao';
 import { HookPerfilTerceiro } from '../hooks/Hook.Perfil.Terceiro';
 
 import { CabecalhoPerfil } from '../Componentes/ComponentesPerfilProprio/CabecalhoPerfil';
@@ -19,7 +19,7 @@ import { GradeDeReels } from '../Componentes/ComponentesPerfilProprio/Grade.Reel
 
 const ProfilePageContent = ({ userId }) => {
     const { profile, isLoading, error, handleFollow } = HookPerfilTerceiro(userId);
-    const { user: loggedInUser } = useUsuarioSessao();
+    const { usuario: loggedInUser } = useAutenticacao();
 
     const [activeTab, setActiveTab] = useState('posts');
     const [isModalOpen, setIsModalOpen] = useState(false);

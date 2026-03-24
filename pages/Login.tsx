@@ -1,39 +1,30 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { useUsuarioSessao } from '../hooks/Hook.Usuario.Sessao';
-import { useLoginEmailSenha } from '../hooks/Hook.Login.Email.Senha'; 
-import { useGoogleLogin } from '../hooks/Hook.Login.Google'; 
+import { useAutenticacao } from '../hooks/Hook.Autenticacao';
 import { CardOpcoesLogin } from '../Componentes/ComponentesDeAuth/Componentes/Card.Opcoes.Login';
 import { CardLoginEmailSenha } from '../Componentes/ComponentesDeAuth/Componentes/Card.Login.Email.Senha';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-// Forçando um novo build para aplicar a correção do redirecionamento
 export const Login: React.FC = () => {
     const navigate = useNavigate();
-    const { user, loading: authLoading } = useUsuarioSessao();
-
     const {
-        processando: processandoEmail,
-        erro: erroEmail,
-        mostrarFormEmail,
-        setMostrarFormEmail,
-        email,
-        definirEmail,
-        senha,
-        definirSenha,
-        submeterLoginEmail,
-    } = useLoginEmailSenha();
+        usuario: user,
+        carregandoSessao: authLoading,
+        processandoLoginEmail,
+        erroLoginEmail,
+        loginComEmail,
+        processandoLoginGoogle,
+        erroLoginGoogle,
+        loginComGoogle,
+    } = useAutenticacao();
 
-    const {
-        processando: processandoGoogle,
-        erro: erroGoogle,
-        submeterLoginGoogle,
-    } = useGoogleLogin();
+    const [mostrarFormEmail, setMostrarFormEmail] = useState(false);
+    const [email, definirEmail] = useState('');
+    const [senha, definirSenha] = useState('');
 
-    // Efeito para redirecionar após a autenticação bem-sucedida
     useEffect(() => {
         if (!authLoading && user) {
             const targetUrl = user.profile_completed ? '/feed' : '/complete-profile';
@@ -41,7 +32,10 @@ export const Login: React.FC = () => {
         }
     }, [user, authLoading, navigate]);
 
-    const isLoading = processandoEmail || processandoGoogle;
+    const submeterLoginEmail = (e: React.FormEvent) => {
+        e.preventDefault();
+        loginComEmail({ email, senha });
+    };
 
     if (authLoading) {
         return (
@@ -53,6 +47,9 @@ export const Login: React.FC = () => {
             </div>
         );
     }
+
+    const isLoading = processandoLoginEmail || processandoLoginGoogle;
+    const erro = erroLoginEmail || erroLoginGoogle;
 
     const CamadaDeProcessamento = () => (
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-[32px] flex items-center justify-center z-50">
@@ -68,12 +65,11 @@ export const Login: React.FC = () => {
                 </div>
             );
         }
-
         return (
             <div className="w-full flex justify-center">
                 <GoogleLogin
-                    onSuccess={submeterLoginGoogle}
-                    onError={() => console.error(erroGoogle || 'Login com Google falhou')}
+                    onSuccess={loginComGoogle}
+                    onError={() => console.error(erroLoginGoogle || 'Login com Google falhou')}
                     shape="rectangular"
                     size="large"
                     theme="filled_black"
@@ -88,7 +84,6 @@ export const Login: React.FC = () => {
                 <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[120px]"></div>
                 <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[100px]"></div>
             </div>
-
             <div className="w-full max-w-[400px] mx-4 bg-white/5 backdrop-blur-2xl rounded-[32px] p-10 border border-white/10 shadow-2xl relative z-10 flex flex-col items-center">
                 {mostrarFormEmail ? (
                     <CardLoginEmailSenha 
@@ -98,8 +93,8 @@ export const Login: React.FC = () => {
                         definirSenha={definirSenha}
                         aoSubmeter={submeterLoginEmail}
                         aoVoltar={() => setMostrarFormEmail(false)}
-                        carregando={processandoEmail}
-                        erro={erroEmail || erroGoogle}
+                        carregando={processandoLoginEmail}
+                        erro={erroLoginEmail}
                     />
                 ) : (
                     <CardOpcoesLogin 

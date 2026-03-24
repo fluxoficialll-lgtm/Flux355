@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useUsuarioSessao } from '../hooks/Hook.Usuario.Sessao';
+import { useAutenticacao } from '../hooks/Hook.Autenticacao';
 import { HookPerfilProprio } from '../hooks/Hook.Perfil.Proprio';
 
 import { CabecalhoPerfil } from '../Componentes/ComponentesPerfilProprio/CabecalhoPerfil';
@@ -97,7 +97,7 @@ const ProfilePageContent = () => {
 }
 
 export const PG_Perfil_Proprio = () => {
-    const { user: loggedInUser } = useUsuarioSessao();
+    const { usuario: loggedInUser } = useAutenticacao();
 
     if (!loggedInUser) {
         return <ModalTelaCarregamento /> // Ou um prompt de login

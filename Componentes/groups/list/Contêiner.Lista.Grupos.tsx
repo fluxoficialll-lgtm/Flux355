@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Group } from '../../../types';
 import { CardMenuConteinerListaGrupo } from './Card.Menu.Conteiner.Lista.Grupo';
 import { useConfiguracaoGrupo } from '../../../hooks/Hook.Configuracao.Grupo';
-import { useUsuarioSessao } from '../../../hooks/Hook.Usuario.Sessao'; // Importa o hook da sessão
+import { useAutenticacao } from '../../../hooks/Hook.Autenticacao'; // Importa o hook de autenticação
 
 interface GroupListItemProps {
     group: Group & { navigateTo?: string; isSalesPlatformEnabled?: boolean };
-    // currentUserEmail: string | null; // <-- Prop removida
     unreadCount: number;
     isMenuActive: boolean;
     onToggleMenu: (e: React.MouseEvent) => void;
@@ -19,7 +18,6 @@ interface GroupListItemProps {
 
 export const ContêinerListaGrupos: React.FC<GroupListItemProps> = ({
     group,
-    // currentUserEmail, // <-- Prop removida
     unreadCount,
     isMenuActive,
     onToggleMenu,
@@ -28,7 +26,7 @@ export const ContêinerListaGrupos: React.FC<GroupListItemProps> = ({
 }) => {
     const navigate = useNavigate();
     const { resolverAcaoDoClique } = useConfiguracaoGrupo();
-    const { user: currentUser } = useUsuarioSessao(); // Obtém o usuário da sessão
+    const { usuario: currentUser } = useAutenticacao(); // Obtém o usuário da sessão
 
     // Lógica corrigida: Compara o ID do dono com o ID do usuário da sessão
     const isCreator = currentUser ? group.donoId === currentUser.id : false;
