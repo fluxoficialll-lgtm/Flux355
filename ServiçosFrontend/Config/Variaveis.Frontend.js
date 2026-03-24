@@ -14,10 +14,9 @@ const isProduction = env.MODE === 'production';
 // --- Definição das Configurações ---
 
 const VariaveisFrontend = {
-    // Define a URL da API com base no ambiente
-    apiBaseUrl: isProduction 
-        ? 'https://api.flux.black' // URL da API de Produção
-        : '/api',                 // Proxy para a API em Desenvolvimento
+    // Define a URL da API para sempre usar o proxy, tanto em produção quanto em desenvolvimento.
+    // Isso é crucial para evitar problemas de CORS em produção.
+    apiBaseUrl: '/api',
 
     // Chave pública do Stripe
     stripePublicKey: env.VITE_STRIPE_PUBLIC_KEY || 'CHAVE_NAO_DEFINIDA',
