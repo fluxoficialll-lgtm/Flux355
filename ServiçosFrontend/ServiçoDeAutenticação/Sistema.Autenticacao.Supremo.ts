@@ -107,8 +107,15 @@ const createAuthService = () => {
             setState({ loading: true, error: null });
             try {
                 const { data } = await authApi.resolverSessaoLogin(code);
-                const { user } = data;
+                const { user, isNewUser } = data; // A API retorna se o usuário é novo
                 setState({ user, loading: false, error: null });
+
+                // Redirecionamento condicional para o ambiente de produção
+                if (config.VITE_APP_ENV === 'production') {
+                    const targetUrl = isNewUser ? '/completar-perfil' : '/feed';
+                    window.location.href = targetUrl;
+                }
+                
                 return data;
             } catch (error: any) {
                 setState({ user: null, loading: false, error });
