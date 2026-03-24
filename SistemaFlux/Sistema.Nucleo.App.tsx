@@ -1,12 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { HashRouter } from 'react-router-dom';
-import { ProvedorModal } from '../Componentes/ComponenteDeInterfaceDeUsuario/Sistema.Modal';
-import { GlobalTracker } from '../Componentes/layout/GlobalTracker';
-import { DeepLinkHandler } from '../Componentes/layout/DeepLinkHandler';
+import { SistemaProvedores } from './Sistema.Provedores'; // Caminho e nome do componente atualizados
 import AppRoutes from '../routes/AppRoutes';
-import MonitorDeErrosDeInterface from '../Componentes/ComponentesDePrevençãoDeErros/MonitorDeErrosDeInterface.jsx';
-import { AuthProvider } from '../ServiçosFrontend/ServiçoDeAutenticação/Provedor.Autenticacao.tsx';
 
 const Maintenance = lazy(() => import('../pages/Maintenance'));
 
@@ -19,9 +14,36 @@ const LoadingFallback = () => (
     </div>
 );
 
+// Este hook buscaria a configuração de uma API ou arquivo JSON.
+const useMaintenanceStatus = () => {
+  const [isMaintenance, setMaintenance] = useState(false);
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Exemplo buscando de um JSON público
+    fetch('/config.json')
+      .then(res => res.json())
+      .then(config => {
+        setMaintenance(config.maintenanceMode || false);
+        setLoading(false);
+      })
+      .catch(() => {
+        // Em caso de erro, assumimos que não está em manutenção
+        setMaintenance(false);
+        setLoading(false);
+      });
+  }, []);
+
+  return { isLoading, isMaintenance };
+};
+
+
 const SistemaNucleoApp: React.FC = () => {
-  // O estado de manutenção pode ser controlado por um serviço ou configuração externa no futuro.
-  const [isMaintenance] = useState(false);
+  const { isLoading, isMaintenance } = useMaintenanceStatus();
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
 
   if (isMaintenance) {
     return (
@@ -31,22 +53,10 @@ const SistemaNucleoApp: React.FC = () => {
     );
   }
 
-  // O componente agora é 'puro'. Ele não orquestra mais a inicialização.
-  // Apenas renderiza a estrutura da UI, assumindo que os serviços já foram inicializados.
   return (
-    <MonitorDeErrosDeInterface>
-      <AuthProvider>
-        <ProvedorModal>
-          <HashRouter>
-            <GlobalTracker />
-            <DeepLinkHandler />
-            <Suspense fallback={<LoadingFallback />}>
-              <AppRoutes />
-            </Suspense>
-          </HashRouter>
-        </ProvedorModal>
-      </AuthProvider>
-    </MonitorDeErrosDeInterface>
+    <SistemaProvedores>
+      <AppRoutes />
+    </SistemaProvedores>
   );
 };
 
