@@ -48,18 +48,20 @@ const performLog = (level: LogLevel, module: string, message: any, data: any = n
   const levelNumber = NIVEIS_DE_LOG[level];
   if (levelNumber < (NIVEIS_DE_LOG.DEBUG)) return; // Ajustar conforme o ambiente
 
+  const messageAsString = typeof message === 'object' && message !== null ? JSON.stringify(message, null, 2) : String(message);
+
   const logEntry: LogEntry = {
     timestamp: new Date().toISOString(),
     level,
     env: VariaveisFrontend.mode || 'development',
     module,
     traceId,
-    message: String(message),
+    message: messageAsString,
     data: mascararDados(data),
   };
 
   if (level === 'ERROR' || level === 'FATAL') {
-    const error = data instanceof Error ? data : new Error(String(message));
+    const error = data instanceof Error ? data : new Error(messageAsString);
     rastreadorDeEventos.trackCriticalError(error, { module, traceId, extraData: data });
   }
 
