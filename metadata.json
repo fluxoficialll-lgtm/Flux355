@@ -1,9 +1,0 @@
-{
-  "name": "1986 hibrido",
-  "description": "A comprehensive authentication flow application including login, registration, password recovery, and profile completion with strict validation rules.\n",
-  "requestFramePermissions": [
-    "camera",
-    "microphone",
-    "geolocation"
-  ]
-}

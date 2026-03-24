@@ -1,6 +1,6 @@
 
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import fs from 'fs';
 import path from 'path';
@@ -9,7 +9,7 @@ import { fileURLToPath as fileURLToPath_log } from 'url';
 // --- Início do Código de Log Personalizado ---
 const __filename_log = fileURLToPath_log(import.meta.url);
 const __dirname_log = path.dirname(__filename_log);
-const logDir = path.join(__dirname_log, 'logs');
+const logDir = path.join(__dirname_log, '..', 'logs');
 
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
@@ -72,16 +72,14 @@ import express from 'express';
 import http from 'http';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io'; // Importa o Server do socket.io
-import { run as runMigrations } from './scripts/executar-migracoes.js';
-import { setupMiddlewares } from './backend/config/Sistema.Middleware.js'; // Corrigido
-// import { upload } from './backend/config/storage.js';
-import { db } from './backend/database/InicializacaoDoPostgreSQL.js';
-import apiRoutes from './backend/RotasBackend/Rotas.js';
-import { auditorDoPostgreSQL } from './backend/database/AuditoresDeBancos/AuditorDoPostgreSQL.js';
+import { run as runMigrations } from '../scripts/executar-migracoes.js';
+import { setupMiddlewares } from './config/Sistema.Middleware.js';
+import { db, auditorDoPostgreSQL } from './database/Sistema.Banco.Dados.js';
+import apiRoutes from './RotasBackend/Rotas.js';
 
 // --- [INÍCIO] LÓGICA DE AUDITORIA DE ENDPOINTS ---
-import { extrairTodasAsRotas } from './backend/util/rota-extractor.js';
-import { registrarRotas as registrarRotasDeAuditoria } from './backend/Logs/BK.Log.Supremo.js';
+import { extrairTodasAsRotas } from './util/rota-extractor.js';
+import { registrarRotas as registrarRotasDeAuditoria } from './Logs/BK.Log.Supremo.js';
 // --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
 
 const __filename = fileURLToPath(import.meta.url);
@@ -111,16 +109,6 @@ const rotasDoApp = extrairTodasAsRotas(app);
 registrarRotasDeAuditoria(rotasDoApp);
 console.log(`[AUDITORIA] ${rotasDoApp.length} endpoints registrados para auditoria.`);
 // --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
-
-/*
-app.post('/api/upload', upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        req.logger.warn('UPLOAD_FAILURE', { reason: 'No file uploaded' });
-        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
-    }
-    res.status(501).json({ error: 'A funcionalidade de upload está temporariamente desativada.' });
-});
-*/
 
 const distPath = path.resolve(process.cwd(), 'dist');
 app.use(express.static(distPath));
