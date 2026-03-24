@@ -3,7 +3,10 @@ import {
     IAutenticacaoServico,
     LoginRequest,
     LoginResponse,
-    LoginRequestSchema 
+    LoginRequestSchema, 
+    GoogleLoginRequest,
+    GoogleLoginResponse,
+    GoogleLoginResponseSchema,
 } from '../Contratos/Contrato.Autenticacao';
 import { AxiosResponse } from 'axios';
 import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
@@ -40,6 +43,19 @@ class AutenticacaoAPISupremo implements IAutenticacaoServico {
             return resposta.data;
         } catch (error) {
             LogSupremo.API.Autenticacao.falhaLogin(data.email, error);
+            throw error;
+        }
+    }
+
+    async resolverSessaoLogin(data: GoogleLoginRequest): Promise<GoogleLoginResponse> {
+        LogSupremo.API.Autenticacao.inicioLoginGoogle(data.token);
+        try {
+            const resposta: AxiosResponse<GoogleLoginResponse> = await ClienteBackend.post('/auth/google/callback', data);
+            const dadosValidados = GoogleLoginResponseSchema.parse(resposta.data);
+            LogSupremo.API.Autenticacao.sucessoLoginGoogle(dadosValidados);
+            return dadosValidados;
+        } catch (error) {
+            LogSupremo.API.Autenticacao.falhaLoginGoogle(error);
             throw error;
         }
     }

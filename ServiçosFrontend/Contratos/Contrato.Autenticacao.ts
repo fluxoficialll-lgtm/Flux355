@@ -15,6 +15,11 @@ export const LoginRequestSchema = z.object({
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres."),
 });
 
+// Schema para a requisição de login com Google
+export const GoogleLoginRequestSchema = z.object({
+  token: z.string(),
+});
+
 // Schema para os dados do usuário autenticado
 export const UsuarioAutenticadoSchema = z.object({
   id: z.string(),
@@ -28,6 +33,13 @@ export const LoginResponseSchema = z.object({
   usuario: UsuarioAutenticadoSchema,
 });
 
+// Schema para a resposta da API de login com Google
+export const GoogleLoginResponseSchema = z.object({
+  token: z.string(),
+  usuario: UsuarioAutenticadoSchema,
+  isNewUser: z.boolean(),
+});
+
 
 // --- Tipos Derivados ---
 // Estes tipos são gerados automaticamente a partir dos schemas Zod.
@@ -35,6 +47,8 @@ export const LoginResponseSchema = z.object({
 
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
+export type GoogleLoginResponse = z.infer<typeof GoogleLoginResponseSchema>;
 export type UsuarioAutenticado = z.infer<typeof UsuarioAutenticadoSchema>;
 
 
@@ -43,4 +57,5 @@ export type UsuarioAutenticado = z.infer<typeof UsuarioAutenticadoSchema>;
 // Qualquer implementação, seja real ou mock, deve seguir este contrato.
 export interface IAutenticacaoServico {
     login(data: LoginRequest): Promise<LoginResponse>;
+    resolverSessaoLogin(data: GoogleLoginRequest): Promise<GoogleLoginResponse>;
 }

@@ -6,7 +6,8 @@ import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
 import { servicoSincronizacao } from './Servico.Sincronizacao';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
-import LogLoginGoogle from '../SistemaObservabilidade/Log.Hook.Login.Google'; // Importe o logger
+import LogLoginGoogle from '../SistemaObservabilidade/Log.Hook.Login.Google';
+import { UsuarioAutenticado } from '../Contratos/Contrato.Autenticacao';
 
 // Garantir a inicialização dos módulos de log
 if (!LogSupremo.Depuracao) {
@@ -26,7 +27,7 @@ if (!LogSupremo.Log) {
 // --- Types & Interfaces ---
 interface User extends Usuario {}
 interface AuthState {
-    user: User | null;
+    user: User | UsuarioAutenticado | null; // Allow both types for transition
     loading: boolean;
     error: Error | null;
 }
@@ -83,7 +84,8 @@ const createAuthService = () => {
         async register(dadosRegistro: RegistroUsuarioDTO) {
             setState({ loading: true, error: null });
             try {
-                const { data } = await authApi.register(dadosRegistro);
+                // Assuming authApi.register returns the created user directly
+                const data = await authApi.register(dadosRegistro);
                 setState({ loading: false });
                 return data;
             } catch (error: any) {
@@ -94,10 +96,11 @@ const createAuthService = () => {
         async login(dadosLogin: LoginUsuarioDTO) {
             setState({ loading: true, error: null });
             try {
-                const { data } = await authApi.login(dadosLogin.email, dadosLogin.password);
-                const { user } = data;
-                setState({ user, loading: false });
-                return data;
+                const { usuario, token } = await authApi.login(dadosLogin);
+                localStorage.setItem('userToken', token);
+                localStorage.setItem('user', JSON.stringify(usuario));
+                setState({ user: usuario, loading: false });
+                return { usuario, token };
             } catch (error: any) {
                 setState({ user: null, loading: false, error });
                 throw error;
@@ -109,18 +112,20 @@ const createAuthService = () => {
 
             try {
                 LogLoginGoogle.callbackRecebido(credential.substring(0, 15) + '...');
-                const { data } = await authApi.resolverSessaoLogin(credential);
-                const { user, isNewUser } = data;
+                const { usuario, token, isNewUser } = await authApi.resolverSessaoLogin({ token: credential });
+                
+                localStorage.setItem('userToken', token);
+                localStorage.setItem('user', JSON.stringify(usuario));
 
-                LogLoginGoogle.loginSucesso(user.id, isNewUser);
-                setState({ user, loading: false, error: null });
+                LogLoginGoogle.loginSucesso(usuario.id, isNewUser);
+                setState({ user: usuario, loading: false, error: null });
 
                 if (config.VITE_APP_ENV === 'production') {
                     const targetUrl = isNewUser ? '/completar-perfil' : '/feed';
                     window.location.href = targetUrl;
                 }
                 
-                return data;
+                return { usuario, token, isNewUser };
             } catch (error: any) {
                 LogLoginGoogle.loginFalha(error, 'submissao_login');
                 setState({ user: null, loading: false, error });

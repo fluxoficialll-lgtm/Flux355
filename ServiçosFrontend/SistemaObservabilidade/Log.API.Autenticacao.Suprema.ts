@@ -40,6 +40,30 @@ const LogAPIAutenticacaoSuprema = {
   },
 
   /**
+   * Registra o início de uma tentativa de login com Google.
+   * @param {string} token O token (ou parte dele) para identificação.
+   */
+  inicioLoginGoogle: (token: string) => {
+    MensageiroClienteBackend.info(`Tentativa de login com Google. Token: ${token.substring(0, 15)}...`, { contexto: CONTEXTO, tipo: 'google' });
+  },
+
+  /**
+   * Registra o sucesso do login com Google.
+   * @param {any} resposta A resposta da API.
+   */
+  sucessoLoginGoogle: (resposta: any) => {
+    MensageiroClienteBackend.info('Login com Google bem-sucedido.', { contexto: CONTEXTO, tipo: 'google', resposta });
+  },
+
+  /**
+   * Registra a falha no login com Google.
+   * @param {any} erro O erro retornado.
+   */
+  falhaLoginGoogle: (erro: any) => {
+    MensageiroClienteBackend.error('Falha no login com Google.', { contexto: CONTEXTO, tipo: 'google', erro });
+  },
+
+  /**
    * Registra o início de uma tentativa de logout.
    * @param {string} usuarioId O ID do usuário que está deslogando.
    */

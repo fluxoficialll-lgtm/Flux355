@@ -1,4 +1,3 @@
-
 import VariaveisFrontend from '../Config/Variaveis.Frontend';
 import { rastreadorDeEventos } from './Rastreador.Eventos.js';
 
@@ -42,13 +41,24 @@ const mascararDados = (data: any): any => {
   }, {} as Record<string, any>);
 };
 
+// --- SERIALIZAÇÃO ---
+
+const safeJsonStringify = (obj: any): string => {
+  try {
+    return JSON.stringify(obj, (key, value) => 
+      value instanceof Error ? { message: value.message, stack: value.stack } : value, 2);
+  } catch (e) {
+    return '[Falha na serialização do objeto]';
+  }
+};
+
 // --- NÚCLEO DO SERVIÇO DE LOG ---
 
 const performLog = (level: LogLevel, module: string, message: any, data: any = null, traceId?: string) => {
   const levelNumber = NIVEIS_DE_LOG[level];
-  if (levelNumber < (NIVEIS_DE_LOG.DEBUG)) return; // Ajustar conforme o ambiente
+  if (levelNumber < (NIVEIS_DE_LOG.INFO)) return;
 
-  const messageAsString = typeof message === 'object' && message !== null ? JSON.stringify(message, null, 2) : String(message);
+  const messageAsString = typeof message === 'object' && message !== null ? safeJsonStringify(message) : String(message);
 
   const logEntry: LogEntry = {
     timestamp: new Date().toISOString(),
@@ -66,7 +76,7 @@ const performLog = (level: LogLevel, module: string, message: any, data: any = n
   }
 
   const logFunction = console[level.toLowerCase() as 'info'] || console.log;
-  logFunction(JSON.stringify(logEntry, null, 2));
+  logFunction(safeJsonStringify(logEntry));
   enviarLogParaBackend(logEntry);
 };
 
@@ -75,36 +85,31 @@ const enviarLogParaBackend = async (logEntry: LogEntry) => {
     await fetch('/api/log/frontend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(logEntry),
+      body: safeJsonStringify(logEntry),
     });
   } catch (error) {
     console.error('Falha ao enviar log para o backend:', error);
   }
 };
 
-// --- FÁBRICA DE LOGGER (A Nova Abordagem) ---
+// --- FÁBRICA DE LOGGER ---
 
-/**
- * Cria uma instância de logger para um módulo específico.
- * @param module O nome do módulo (e.g., 'Hook.Login.Google').
- * @returns Um objeto com métodos de log (`info`, `warn`, `error`, `debug`).
- */
 export const createLogger = (module: string) => ({
-  log: (message: string, data?: any) => performLog('INFO', module, message, data), // Alias para info
-  info: (message: string, data?: any) => performLog('INFO', module, message, data),
-  warn: (message: string, data?: any) => performLog('WARN', module, message, data),
-  error: (message: string, error?: any) => performLog('ERROR', module, message, error),
-  debug: (message: string, data?: any) => performLog('DEBUG', module, message, data),
+  log: (message: any, data?: any) => performLog('INFO', module, message, data),
+  info: (message: any, data?: any) => performLog('INFO', module, message, data),
+  warn: (message: any, data?: any) => performLog('WARN', module, message, data),
+  error: (message: any, error?: any) => performLog('ERROR', module, message, error),
+  debug: (message: any, data?: any) => performLog('DEBUG', module, message, data),
 });
 
-// --- INTERFACE PÚBLICA LEGADA (Para Compatibilidade) ---
+// --- INTERFACE PÚBLICA LEGADA ---
 
 const LogProvider = {
-  info: (module: string, message: string, data: any = null, traceId?: string) => performLog('INFO', module, message, data, traceId),
-  warn: (module: string, message: string, data: any = null, traceId?: string) => performLog('WARN', module, message, data, traceId),
-  error: (module: string, message: string, error: any = null, traceId?: string) => performLog('ERROR', module, message, error, traceId),
-  fatal: (module: string, message: string, error: any = null, traceId?: string) => performLog('FATAL', module, message, error, traceId),
-  debug: (module: string, message: string, data: any = null, traceId?: string) => performLog('DEBUG', module, message, data, traceId),
+  info: (module: string, message: any, data: any = null, traceId?: string) => performLog('INFO', module, message, data, traceId),
+  warn: (module: string, message: any, data: any = null, traceId?: string) => performLog('WARN', module, message, data, traceId),
+  error: (module: string, message: any, error: any = null, traceId?: string) => performLog('ERROR', module, message, error, traceId),
+  fatal: (module: string, message: any, error: any = null, traceId?: string) => performLog('FATAL', module, message, error, traceId),
+  debug: (module: string, message: any, data: any = null, traceId?: string) => performLog('DEBUG', module, message, data, traceId),
 };
 
 export default LogProvider;
