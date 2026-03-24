@@ -1,5 +1,5 @@
 
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import repositorioConversas from '../Repositorios/Repositorio.Conversas.js';
 
 const obterConversas = async (userId) => {

@@ -1,7 +1,7 @@
 
 // backend/controles/Controles.Provedor.Stripe.js
 import Stripe from 'stripe';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import config from '../config/Variaveis.Backend.js';
 import SistemaTaxasStripe from '../ServicosBackend/Sistema.Taxas.Stripe.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';

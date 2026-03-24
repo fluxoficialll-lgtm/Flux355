@@ -1,6 +1,0 @@
-export const Camadas = {
-  APPLICATION: 'APPLICATION',
-  CONTROLLER: 'CONTROLLER',
-  SERVICE: 'SERVICE',
-  DATABASE: 'DATABASE',
-};

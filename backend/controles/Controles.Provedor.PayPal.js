@@ -1,6 +1,6 @@
 
 // backend/controles/Controles.Provedor.PayPal.js
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 
 // Funções de controle para o provedor PayPal

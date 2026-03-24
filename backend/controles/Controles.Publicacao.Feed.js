@@ -1,6 +1,6 @@
 
 // backend/controles/Controles.Publicacao.Feed.js
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import servicoPublicacaoFeed from '../ServicosBackend/Servicos.Publicacao.Feed.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarPublicacaoFeed } from '../validators/Validator.Estrutura.Publicacao.Feed.js';

@@ -1,6 +1,6 @@
 
 import pool from '../../pool.js';
-import Log from '../../../Logs/BK.Log.Supremo.js';
+import * as Log from '../../../Logs/BK.Log.Supremo.js';
 
 const criar = async (dadosSessao) => {
     const { id, user_id, token, expires_at, user_agent, ip_address, created_at } = dadosSessao;

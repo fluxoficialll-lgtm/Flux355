@@ -5,20 +5,7 @@ import { RegistroUsuarioDTO, LoginUsuarioDTO } from '../../../types/Entrada/Dto.
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import { servicoGestaoSessao } from './Servico.Gestao.Sessao';
 import { servicoSincronizacao } from './Servico.Sincronizacao';
-import {
-    processarRequisicao, 
-    criarRequisicaoLoginEmail,
-    criarRequisicaoRegistroEmail,
-    criarRequisicaoLoginGoogle,
-    criarRequisicaoLogout,
-    RequisicaoAutenticacao // Importando o tipo para checagem
-} from '../../GestaoRequisicoes/Sistema.Requisicoes.Supremo';
-import {
-    processarRespostaSuprema,
-    criarRespostaLogin,
-    criarRespostaRegistro,
-    criarRespostaLogout
-} from '../../GestaoRespostas/Sistema.Respostas.Supremo';
+import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
 
 // --- Types & Interfaces ---
 interface User extends Usuario {}
@@ -70,49 +57,6 @@ const createAuthService = () => {
         }
     };
 
-    const executeAuthRequest = async (request: RequisicaoAutenticacao) => {
-        LogSupremo.Depuracao.log("Executando requisição de autenticação:", request);
-        setState({ loading: true, error: null });
-        
-        // 1. Executa a requisição e obtém o resultado bruto.
-        const resultadoRequisicao = await processarRequisicao(request);
-
-        // 2. Cria uma resposta estruturada com base no contexto da requisição.
-        let respostaEstruturada;
-        switch (request.tipo) {
-            case 'LOGIN_EMAIL':
-            case 'LOGIN_GOOGLE':
-                respostaEstruturada = criarRespostaLogin(resultadoRequisicao.sucesso, resultadoRequisicao.dados, resultadoRequisicao.mensagem);
-                break;
-            case 'REGISTRO_EMAIL':
-                respostaEstruturada = criarRespostaRegistro(resultadoRequisicao.sucesso, resultadoRequisicao.mensagem);
-                break;
-            case 'LOGOUT':
-                respostaEstruturada = criarRespostaLogout(resultadoRequisicao.sucesso, resultadoRequisicao.mensagem);
-                break;
-            default:
-                // Fallback para um tipo de requisição não esperado.
-                const erroMsg = "Tipo de requisição de autenticação não reconhecido no Sistema Supremo.";
-                LogSupremo.Log.error(erroMsg, request);
-                setState({ loading: false, error: new Error(erroMsg) });
-                throw new Error(erroMsg);
-        }
-
-        // 3. Delega o processamento de efeitos colaterais (logs, UI, etc.) ao sistema de respostas.
-        processarRespostaSuprema(respostaEstruturada);
-
-        // 4. Mantém o contrato original: atualiza o estado local e retorna/lança o resultado.
-        if (resultadoRequisicao.sucesso) {
-            const user = resultadoRequisicao.dados ? resultadoRequisicao.dados.user : null;
-            setState({ user, loading: false });
-            return resultadoRequisicao.dados;
-        } else {
-            const error = new Error(resultadoRequisicao.mensagem);
-            setState({ user: null, loading: false, error });
-            throw error;
-        }
-    };
-
     const service = {
         getState: () => currentState,
         getCurrentUser: () => currentState.user,
@@ -121,25 +65,53 @@ const createAuthService = () => {
             return () => { listeners = listeners.filter(l => l !== listener); };
         },
         async register(dadosRegistro: RegistroUsuarioDTO) {
-            const request = criarRequisicaoRegistroEmail(dadosRegistro);
-            return executeAuthRequest(request);
+            setState({ loading: true, error: null });
+            try {
+                const { data } = await authApi.register(dadosRegistro);
+                setState({ loading: false });
+                return data;
+            } catch (error: any) {
+                setState({ loading: false, error });
+                throw error;
+            }
         },
         async login(dadosLogin: LoginUsuarioDTO) {
-            const request = criarRequisicaoLoginEmail(dadosLogin);
-            return executeAuthRequest(request);
+            setState({ loading: true, error: null });
+            try {
+                const { data } = await authApi.login(dadosLogin.email, dadosLogin.password);
+                const { user } = data;
+                setState({ user, loading: false });
+                return data;
+            } catch (error: any) {
+                setState({ user: null, loading: false, error });
+                throw error;
+            }
         },
         async loginWithGoogle(code: string, referredBy?: string) {
             LogSupremo.Depuracao.log("loginWithGoogle chamado com:", { code, referredBy });
-            const request = criarRequisicaoLoginGoogle(code, referredBy);
-            const response = await executeAuthRequest(request);
-            if (response && response.user) {
-                setState({ user: response.user, loading: false, error: null });
+            setState({ loading: true, error: null });
+            try {
+                // O método resolverSessaoLogin agora é parte do authApi
+                const { data } = await authApi.resolverSessaoLogin(code);
+                const { user } = data;
+                setState({ user, loading: false, error: null });
+                return data;
+            } catch (error: any) {
+                setState({ user: null, loading: false, error });
+                throw error;
             }
-            return response;
         },
         async logout() {
-            const request = criarRequisicaoLogout();
-            return executeAuthRequest(request);
+            setState({ loading: true, error: null });
+            try {
+                // Lógica de logout aqui, se necessário (ex: chamar um endpoint de logout)
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('user');
+                setState({ user: null, loading: false });
+            } catch (error: any) {
+                setState({ loading: false, error });
+                throw error;
+            }
         },
         async sincronizarDados() {
             setState({ loading: true, error: null });

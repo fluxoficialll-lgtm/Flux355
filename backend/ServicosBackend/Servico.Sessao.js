@@ -4,7 +4,7 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import repositorioSessao from '../Repositorios/Repositorio.Sessao.js';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import Sessao from '../models/Models.Estrutura.Sessao.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_segredo_jwt_super_secreto';

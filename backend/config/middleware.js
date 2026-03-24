@@ -6,7 +6,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 
 // Importa o nosso novo e centralizado sistema de log
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js'; // Corrigido para importação nomeada
 
 export const setupMiddlewares = (app, io) => {
     // Configurações de segurança e otimização

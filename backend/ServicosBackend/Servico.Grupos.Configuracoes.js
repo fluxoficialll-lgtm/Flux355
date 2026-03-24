@@ -1,5 +1,5 @@
 
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import Repositorio from '../Repositorios/Repositorio.Grupos.Configuracoes.js';
 import ModeloConfig from '../models/Models.Estrutura.Configuracoes.Grupo.js';
 

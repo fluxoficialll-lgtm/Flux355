@@ -1,6 +1,6 @@
 
 import consultasUsuario from '../database/GestaoDeDados/PostgreSQL/Consultas.Usuario.js';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 
 const criar = async (dadosUsuario) => {
     Log.database.info('Chamando camada de gestão de dados para criar usuário.', { 

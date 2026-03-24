@@ -1,6 +1,6 @@
 
 // backend/controles/Controles.Gestao.Credencial.Stripe.js
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import Stripe from 'stripe';
 import config from '../config/Variaveis.Backend.js';

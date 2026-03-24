@@ -1,5 +1,5 @@
 
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoComentariosMarketplace from '../ServicosBackend/Servicos.Publicacao.Comentarios.Marketplace.js';
 import ServicoRespostaHTTP from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';

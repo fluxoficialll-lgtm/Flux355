@@ -6,7 +6,7 @@ import ServicoResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 import validadorSessao from '../validators/Validator.Estrutura.Sessao.js';
 import variaveis from '../config/Variaveis.Backend.js';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 
 const oAuth2Client = new OAuth2Client(
   variaveis.google.clientId,

@@ -3,7 +3,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import Usuario from '../models/Models.Estrutura.Usuario.js';
 import repositorioUsuario from '../Repositorios/Repositorio.Usuario.js';
 

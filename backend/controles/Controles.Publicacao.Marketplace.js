@@ -1,6 +1,6 @@
 
 // backend/controles/Controles.Publicacao.Marketplace.js
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoMarketplace from '../ServicosBackend/Servicos.Publicacao.Marketplace.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarItemMarketplace } from '../validators/Validator.Estrutura.Publicacao.Marketplace.js';

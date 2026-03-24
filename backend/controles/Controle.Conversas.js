@@ -1,5 +1,5 @@
 
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import servicoConversas from '../ServicosBackend/Servico.Conversas.js';
 import ServicoRespostaHTTP from '../ServicosBackend/Servico.HTTP.Resposta.js';
 

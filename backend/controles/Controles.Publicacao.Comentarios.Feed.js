@@ -1,6 +1,6 @@
 
 // backend/controles/Controles.Publicacao.Comentarios.Feed.js
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoComentariosFeed from '../ServicosBackend/Servicos.Publicacao.Comentarios.Feed.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarCriacaoComentario } from '../validators/Validator.Estrutura.Comentario.js';

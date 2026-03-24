@@ -1,6 +1,6 @@
 
 // backend/controles/Controles.Publicacao.Reels.js
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoReels from '../ServicosBackend/Servicos.Publicacao.Reels.js';
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
 import { validarPublicacaoReels } from '../validators/Validator.Estrutura.Publicacao.Reels.js';

@@ -2,7 +2,7 @@
 // backend/Repositorios/Repositorio.Sessao.js
 
 import consultasSessao from '../database/GestaoDeDados/PostgreSQL/Consultas.Sessao.js';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 
 const criar = async (dadosSessao) => {
     Log.database.info('Chamando camada de gestão de dados para criar sessão.', { event: 'DB_CREATE_SESSION_START' });

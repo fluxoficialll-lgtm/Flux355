@@ -78,6 +78,11 @@ import { db } from './backend/database/InicializacaoDoPostgreSQL.js';
 import apiRoutes from './backend/RotasBackend/Rotas.js';
 import { auditorDoPostgreSQL } from './backend/database/AuditoresDeBancos/AuditorDoPostgreSQL.js';
 
+// --- [INÍCIO] LÓGICA DE AUDITORIA DE ENDPOINTS ---
+import { extrairTodasAsRotas } from './backend/util/rota-extractor.js';
+import { registrarRotas as registrarRotasDeAuditoria } from './backend/Logs/BK.Log.Supremo.js';
+// --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -89,6 +94,12 @@ const io = initSocket(httpServer);
 setupMiddlewares(app, io);
 
 app.use('/api', apiRoutes);
+
+// --- [INÍCIO] LÓGICA DE AUDITORIA DE ENDPOINTS ---
+const rotasDoApp = extrairTodasAsRotas(app);
+registrarRotasDeAuditoria(rotasDoApp);
+console.log(`[AUDITORIA] ${rotasDoApp.length} endpoints registrados para auditoria.`);
+// --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     if (!req.file) {

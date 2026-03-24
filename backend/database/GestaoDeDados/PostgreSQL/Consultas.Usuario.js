@@ -1,6 +1,6 @@
 
 import pool from '../../pool.js';
-import Log from '../../../Logs/BK.Log.Supremo.js';
+import * as Log from '../../../Logs/BK.Log.Supremo.js';
 
 const criar = async (dadosUsuario) => {
     const cliente = await pool.connect();

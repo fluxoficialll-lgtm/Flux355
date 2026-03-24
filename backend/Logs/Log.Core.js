@@ -1,64 +1,116 @@
-import { AsyncLocalStorage } from 'async_hooks';
-import crypto from 'crypto';
-import onFinished from 'on-finished';
-import pino from 'pino';
-import { Camadas } from './Log.Layers.js';
+import { createLogger, format, transports } from 'winston';
+import { v4 as uuidv4 } from 'uuid';
 
-const asyncLocalStorage = new AsyncLocalStorage();
+const { combine, timestamp, printf, colorize, errors } = format;
 
-const baseLogger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  formatters: {
-    level (label, number) {
-      return { level: label }
+// Formato de log genérico
+const baseLogFormat = printf(({ level, message, timestamp, traceId, ...metadata }) => {
+    let msg = `${timestamp} [${level}]`;
+    if (traceId) {
+        msg += ` [traceId: ${traceId}]`;
     }
-  },
-  timestamp: pino.stdTimeFunctions.isoTime,
+    msg += `: ${message}`;
+    if (metadata && Object.keys(metadata).length > 0 && !(Object.keys(metadata).length === 1 && metadata.stack)) {
+        // Não stringify se for apenas o stack de erro, que já é adicionado pelo `errors({ stack: true })`
+        try {
+            msg += ` \n${JSON.stringify(metadata, null, 2)}`;
+        } catch (e) {
+            // Evita erros de referência circular
+            msg += ` \n[METADATA_UNSERIALIZABLE]`;
+        }
+    }
+    return msg;
 });
 
-const createLayeredLogger = (camada) => {
-  return new Proxy(baseLogger, {
-    get(target, property, receiver) {
-      if (typeof target[property] !== 'function') {
-        return Reflect.get(target, property, receiver);
-      }
-
-      return (...args) => {
-        const store = asyncLocalStorage.getStore();
-        const context = {
-          traceId: store?.traceId,
-          camada,
-        };
-
-        if (args.length > 0 && typeof args[0] === 'object' && args[0] !== null) {
-          args[0] = { ...context, ...args[0] };
-        } else {
-          args.unshift(context);
-        }
-        return target[property].apply(receiver, args);
-      };
-    },
-  });
+const commonConfig = {
+    format: combine(
+        errors({ stack: true }),
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        baseLogFormat
+    ),
+    exitOnError: false
 };
 
-export const requestLoggerMiddleware = (req, res, next) => {
-  const traceId = req.headers['x-request-id'] || crypto.randomUUID();
-  
-  asyncLocalStorage.run({ traceId }, () => {
-    const logger = createLayeredLogger(Camadas.APPLICATION);
-    req.log = logger;
+// Logger de Sistema
+const systemLogger = createLogger({
+    ...commonConfig,
+    level: 'info',
+    transports: [
+        new transports.Console({
+            format: combine(colorize(), baseLogFormat)
+        }),
+        new transports.File({ filename: 'logs/system.log' })
+    ]
+});
 
-    logger.info({ event: 'INBOUND', http: { request: { method: req.method, url: req.originalUrl } } }, `Requisição ${req.method} ${req.originalUrl} recebida.`);
-    
-    onFinished(res, (err, res) => {
-        logger.info({ event: 'OUTBOUND', http: { response: { status_code: res.statusCode } } }, `Requisição ${req.method} ${req.originalUrl} finalizada com status ${res.statusCode}.`);
+// Logger de Banco de Dados
+const databaseLogger = createLogger({
+    ...commonConfig,
+    level: 'debug', // Habilita debug para logs de banco de dados
+    transports: [
+        new transports.Console({
+            format: combine(colorize(), baseLogFormat)
+        }),
+        new transports.File({ filename: 'logs/database.log' })
+    ]
+});
+
+// Logger de Serviços
+const serviceLogger = createLogger({
+    ...commonConfig,
+    level: 'info',
+    transports: [
+        new transports.Console({
+            format: combine(colorize(), baseLogFormat)
+        }),
+        new transports.File({ filename: 'logs/service.log' })
+    ]
+});
+
+// Logger de Controladores
+const controllerLogger = createLogger({
+    ...commonConfig,
+    level: 'info',
+    transports: [
+        new transports.Console({
+            format: combine(colorize(), baseLogFormat)
+        }),
+        new transports.File({ filename: 'logs/controller.log' })
+    ]
+});
+
+
+/**
+ * Middleware para log de requisições.
+ */
+export const requestLoggerMiddleware = (req, res, next) => {
+    const traceId = req.headers['x-flux-trace-id'] || uuidv4();
+    req.traceId = traceId;
+
+    req.logger = systemLogger.child({ traceId });
+
+    res.setHeader('X-Flux-Trace-ID', traceId);
+
+    const start = process.hrtime();
+    req.logger.info(`Request Start: ${req.method} ${req.originalUrl}`);
+
+    res.on('finish', () => {
+        const durationInMilliseconds = getDurationInMilliseconds(start);
+        req.logger.info(`Request End: ${req.method} ${req.originalUrl} - ${res.statusCode} [${durationInMilliseconds.toFixed(2)}ms]`);
     });
 
     next();
-  });
 };
 
-export const applicationLogger = createLayeredLogger(Camadas.APPLICATION);
-export const controllerLogger = createLayeredLogger(Camadas.CONTROLLER);
-export const serviceLogger = createLayeredLogger(Camadas.SERVICE);
-export const databaseLogger = createLayeredLogger(Camadas.DATABASE);
+const getDurationInMilliseconds = (start) => {
+    const NS_PER_SEC = 1e9;
+    const NS_TO_MS = 1e-6;
+    const diff = process.hrtime(start);
+    return (diff[0] * NS_PER_SEC + diff[1]) * NS_TO_MS;
+};
+
+// Exportações dos loggers
+export const logger = systemLogger;
+export const database = databaseLogger;
+export const service = serviceLogger;
+export const controller = controllerLogger;

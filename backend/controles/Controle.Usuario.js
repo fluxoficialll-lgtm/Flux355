@@ -2,7 +2,7 @@
 // backend/controles/Controle.Usuario.js
 import servicoUsuario from '../ServicosBackend/Servico.Usuario.js';
 import ServicoResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import validadorUsuario from '../validators/Validator.Estrutura.Usuario.js';
 
 const atualizarPerfil = async (req, res) => {

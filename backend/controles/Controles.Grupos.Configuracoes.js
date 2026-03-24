@@ -1,7 +1,7 @@
 
 // backend/controles/Controles.Grupos.Configuracoes.js
 import ServicoHTTPResposta from '../ServicosBackend/Servico.HTTP.Resposta.js';
-import Log from '../Logs/BK.Log.Supremo.js';
+import * as Log from '../Logs/BK.Log.Supremo.js';
 import ServicoGruposConfig from '../ServicosBackend/Servico.Grupos.Configuracoes.js';
 
 class GruposConfiguracoesControle {
