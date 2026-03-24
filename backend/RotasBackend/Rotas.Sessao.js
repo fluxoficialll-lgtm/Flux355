@@ -3,7 +3,6 @@
 
 import express from 'express';
 import controleSessao from '../controles/Controle.Sessao.js';
-import authMiddleware from '../config/Middleware.Autenticacao.JWT.js';
 
 const router = express.Router();
 
@@ -13,6 +12,6 @@ router.post('/login', controleSessao.login);
 router.post('/google', controleSessao.googleAuth);
 
 // Rota protegida
-router.post('/logout', authMiddleware, controleSessao.logout);
+router.post('/logout', controleSessao.logout);
 
 export default router;

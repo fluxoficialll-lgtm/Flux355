@@ -1,12 +1,8 @@
 
 import express from 'express';
-import authMiddleware from '../config/Middleware.Autenticacao.JWT.js';
 import gruposConfiguracoesControle from '../controles/Controles.Grupos.Configuracoes.js';
 
 const router = express.Router();
-
-// Middleware de autenticação para todas as rotas de configuração de grupo
-router.use(authMiddleware);
 
 // Rotas de Configurações Gerais
 router.put('/:groupId/settings', gruposConfiguracoesControle.atualizarConfiguracoes);

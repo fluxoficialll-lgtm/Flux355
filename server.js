@@ -1,3 +1,4 @@
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -70,10 +71,10 @@ if (!process.env.JWT_SECRET) {
 import express from 'express';
 import http from 'http';
 import { fileURLToPath } from 'url';
+import { Server } from 'socket.io'; // Importa o Server do socket.io
 import { run as runMigrations } from './scripts/executar-migracoes.js';
-import { initSocket } from './backend/config/socket.js';
-import { setupMiddlewares } from './backend/config/middleware.js';
-import { upload } from './backend/config/storage.js';
+import { setupMiddlewares } from './backend/config/Sistema.Middleware.js'; // Corrigido
+// import { upload } from './backend/config/storage.js';
 import { db } from './backend/database/InicializacaoDoPostgreSQL.js';
 import apiRoutes from './backend/RotasBackend/Rotas.js';
 import { auditorDoPostgreSQL } from './backend/database/AuditoresDeBancos/AuditorDoPostgreSQL.js';
@@ -90,7 +91,17 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const httpServer = http.createServer(app);
 
-const io = initSocket(httpServer);
+// Inicia o Socket.IO
+const io = new Server(httpServer, {
+    cors: {
+        origin: true,
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control', 'X-Flux-Client-ID', 'X-Flux-Trace-ID', 'X-Admin-Action', 'X-Protocol-Version'],
+    }
+});
+
+// Configura os middlewares, agora passando a instância do io
 setupMiddlewares(app, io);
 
 app.use('/api', apiRoutes);
@@ -101,6 +112,7 @@ registrarRotasDeAuditoria(rotasDoApp);
 console.log(`[AUDITORIA] ${rotasDoApp.length} endpoints registrados para auditoria.`);
 // --- [FIM] LÓGICA DE AUDITORIA DE ENDPOINTS ---
 
+/*
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     if (!req.file) {
         req.logger.warn('UPLOAD_FAILURE', { reason: 'No file uploaded' });
@@ -108,6 +120,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     }
     res.status(501).json({ error: 'A funcionalidade de upload está temporariamente desativada.' });
 });
+*/
 
 const distPath = path.resolve(process.cwd(), 'dist');
 app.use(express.static(distPath));
