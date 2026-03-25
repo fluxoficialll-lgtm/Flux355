@@ -1,6 +1,6 @@
 
 // backend/database/GestãoDeDados/PostgreSQL/Consultas.Publicacao.Reels.js
-import pool from '../../pool.js';
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 const create = async (reelData) => {
     const {

@@ -1,5 +1,5 @@
 
-import pool from '../../pool.js';
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 const criar = async (dadosSessao) => {
     const { id, user_id, token, expires_at, user_agent, ip_address, created_at } = dadosSessao;

@@ -1,28 +1,25 @@
-// backend/database/GestãoDeDados/PostgreSQL/Consultas.Métricas.Comentário.Feed.js
+// backend/database/GestaoDeDados/PostgreSQL/Consultas.Metricas.Comentario.Feed.js
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
-import pool from '../../pool.js';
-
-async function insertCommentMetric(commentData) {
-    // Exemplo: INSERT INTO feed_comment_metrics (comment_id, author_id, post_id, created_at) VALUES ($1, $2, $3, NOW());
-    console.log('Consulta SQL: Inserindo métrica de comentário do feed:', commentData);
-    // Substitua pela consulta real quando a tabela for criada
-    return Promise.resolve(); 
+export const trackComment = async (commentData) => {
+    const { userId, postId, content } = commentData;
+    const query = 'INSERT INTO feed_comments (user_id, post_id, content) VALUES ($1, $2, $3) RETURNING *';
+    const values = [userId, postId, content];
+    const result = await pool.query(query, values);
+    return result.rows[0];
 }
 
-async function insertCommentLikeMetric(commentId) {
-    // Exemplo: INSERT INTO feed_comment_like_metrics (comment_id, created_at) VALUES ($1, NOW());
-    console.log('Consulta SQL: Inserindo métrica de like em comentário do feed:', commentId);
-    return Promise.resolve();
+export const trackCommentLike = async (commentId) => {
+    const query = 'UPDATE feed_comments SET likes = likes + 1 WHERE id = $1 RETURNING *';
+    const values = [commentId];
+    const result = await pool.query(query, values);
+    return result.rows[0];
 }
 
-async function insertCommentReplyMetric(commentId, replyData) {
-    // Exemplo: INSERT INTO feed_comment_reply_metrics (comment_id, replier_id, created_at) VALUES ($1, $2, NOW());
-    console.log('Consulta SQL: Inserindo métrica de resposta em comentário do feed:', commentId, replyData);
-    return Promise.resolve();
+export const trackCommentReply = async (commentId, replyData) => {
+    const { userId, content } = replyData;
+    const query = 'INSERT INTO feed_comment_replies (comment_id, user_id, content) VALUES ($1, $2, $3) RETURNING *';
+    const values = [commentId, userId, content];
+    const result = await pool.query(query, values);
+    return result.rows[0];
 }
-
-export {
-    insertCommentMetric,
-    insertCommentLikeMetric,
-    insertCommentReplyMetric,
-};

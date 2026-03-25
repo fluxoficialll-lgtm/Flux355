@@ -1,4 +1,4 @@
-import pool from '../../pool.js';
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 // Contagem de likes para um reel
 export const countLikes = async (reelId) => {

@@ -1,5 +1,5 @@
 
-import pool from '../../pool.js';
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 const criar = async (dadosUsuario) => {
     const cliente = await pool.connect();

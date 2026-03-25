@@ -1,4 +1,6 @@
-export const inserirGrupo = `
+import pool from '../../Processo.Conexao.Banco.Dados.js';
+
+const inserirGrupoQuery = `
     INSERT INTO groups (
         id, 
         name, 
@@ -39,6 +41,33 @@ export const inserirGrupo = `
         pixel_token; -- Manter separado para o objeto pixel
 `;
 
-// Futuramente, outras consultas relacionadas a Grupo podem ser adicionadas aqui:
-// export const buscarGrupoPorId = `...`;
-// export const atualizarGrupo = `...`;
+export const inserirGrupo = async (dadosDoGrupo) => {
+    const values = [
+        dadosDoGrupo.id,
+        dadosDoGrupo.name,
+        dadosDoGrupo.description,
+        dadosDoGrupo.group_type,
+        dadosDoGrupo.price,
+        dadosDoGrupo.currency,
+        dadosDoGrupo.creator_id,
+        dadosDoGrupo.created_at,
+        dadosDoGrupo.member_limit,
+        dadosDoGrupo.cover_image,
+        dadosDoGrupo.access_type,
+        dadosDoGrupo.selected_provider_id,
+        dadosDoGrupo.expiration_date,
+        dadosDoGrupo.vip_door,
+        dadosDoGrupo.pixel_id,
+        dadosDoGrupo.pixel_token,
+        dadosDoGrupo.is_vip,
+        dadosDoGrupo.status
+    ];
+
+    try {
+        const { rows } = await pool.query(inserirGrupoQuery, values);
+        return rows[0];
+    } catch (error) {
+        console.error("Erro em Consultas.Grupo.js ao inserir grupo:", error);
+        throw new Error("Falha ao salvar o grupo no banco de dados.");
+    }
+};

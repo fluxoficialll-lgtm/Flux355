@@ -1,5 +1,5 @@
 
-import pool from '../../pool.js';
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 // IMPORTANTE: Os parâmetros tableName e parentIdColumn não são parametrizados nas queries
 // e são injetados diretamente na string SQL. Isso geralmente é inseguro e pode levar

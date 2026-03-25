@@ -1,5 +1,5 @@
 // backend/database/GestaoDeDados/PostgreSQL/Consultas.Metricas.Comentario.Marketplace.js
-import pool from '../../pool.js';
+import pool from '../../Processo.Conexao.Banco.Dados.js';
 
 export async function insertCommentMetric(commentData) {
     // Exemplo: INSERT INTO marketplace_comment_metrics (comment_id, author_id, item_id, created_at) VALUES ($1, $2, $3, NOW());

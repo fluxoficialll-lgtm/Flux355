@@ -1,6 +1,4 @@
-
-import pool from './pool.js';
-// import { LogDeOperacoes } from '../ServiçosBackEnd/ServiçosDeLogsSofisticados/LogDeOperacoes.js';
+import pool from './Processo.Conexao.Banco.Dados.js';
 
 const db = {
     /**
@@ -16,11 +14,6 @@ const db = {
             process.exit(1); // Encerra a aplicação em caso de falha na conexão
         }
     },
-
-    /**
-     * Exporta o pool para ser usado por repositórios ou outras partes do sistema.
-     */
-    getPool: () => pool
 };
 
 export { db };
