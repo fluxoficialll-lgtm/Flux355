@@ -172,10 +172,31 @@ const atualizar = async (idUsuario, dados) => {
     }
 };
 
+const deletar = async (id) => {
+    const cliente = await pool.connect();
+    try {
+        await cliente.query('BEGIN');
+        await cliente.query('DELETE FROM profiles WHERE user_id = $1', [id]);
+        await cliente.query('DELETE FROM users WHERE id = $1', [id]);
+        await cliente.query('COMMIT');
+        return true;
+    } catch (error) {
+        await cliente.query('ROLLBACK');
+        console.error('Erro ao deletar usuário', { 
+            errorMessage: error.message,
+            stack: error.stack,
+            userId: id 
+        });
+        return false;
+    } finally {
+        cliente.release();
+    }
+};
+
 const buildUpdateQuery = (tabela, dados, colunaId, idUsuario) => {
     const fields = Object.keys(dados);
     const values = Object.values(dados);
-    const setClause = fields.map((field, index) => `"${field}" = $${index + 1}`).join(', ');
+    const setClause = fields.map((field, index) => `\"${field}\" = $${index + 1}`).join(', ');
     
     const query = `UPDATE ${tabela} SET ${setClause} WHERE ${colunaId} = $${fields.length + 1}`;
     
@@ -188,6 +209,7 @@ const consultasUsuario = {
     encontrarPorEmail,
     encontrarPorGoogleId,
     atualizar,
+    deletar
 };
 
 export default consultasUsuario;

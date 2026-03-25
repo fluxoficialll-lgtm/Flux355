@@ -71,3 +71,26 @@ export const inserirGrupo = async (dadosDoGrupo) => {
         throw new Error("Falha ao salvar o grupo no banco de dados.");
     }
 };
+
+export const buscarGrupoPorId = async (id) => {
+    const query = 'SELECT * FROM groups WHERE id = $1';
+    const { rows } = await pool.query(query, [id]);
+    return rows[0];
+};
+
+export const atualizarGrupo = async (id, updates) => {
+    const { name, description } = updates;
+    const query = `
+        UPDATE groups
+        SET name = $1, description = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+        RETURNING *;
+    `;
+    const { rows } = await pool.query(query, [name, description, id]);
+    return rows[0];
+};
+
+export const deletarGrupo = async (id) => {
+    const { rowCount } = await pool.query('DELETE FROM groups WHERE id = $1', [id]);
+    return rowCount > 0;
+};
