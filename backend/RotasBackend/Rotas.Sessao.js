@@ -9,7 +9,7 @@ const router = express.Router();
 // Rotas públicas
 router.post('/registrar', controleSessao.registrar);
 router.post('/login', controleSessao.login);
-router.post('/google', controleSessao.googleAuth);
+router.post('/google/callback', controleSessao.googleAuth); // Rota corrigida para corresponder ao frontend
 
 // Rota protegida
 router.post('/logout', controleSessao.logout);
