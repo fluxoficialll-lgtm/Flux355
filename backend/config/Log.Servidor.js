@@ -1,21 +1,21 @@
 
-// backend/config/Log.Repositorios.js
+// backend/config/Log.Servidor.js
 
 import path from 'path';
 import logger from './logger.js';
 
 /**
- * Cria uma instância de logger para um repositório específico.
+ * Cria uma instância de logger para um componente específico do servidor.
+ * @param {string} componentName - O nome do componente do servidor (ex: 'Servidor Principal', 'Express', 'Socket.io').
  * @param {string} filePath - O caminho do arquivo que está usando o logger.
  * @returns {object} - Um objeto com métodos de log (info, warn, error, debug).
  */
-const createRepositoryLogger = (filePath) => {
+const createServerLogger = (componentName, filePath) => {
     const fileName = path.basename(filePath);
-    const moduleName = fileName.replace('.js', '');
 
     const log = (level, message, meta = {}) => {
         const logObject = {
-            modulo: moduleName,
+            componente: componentName,
             arquivo: fileName,
             ...meta
         };
@@ -49,4 +49,4 @@ const createRepositoryLogger = (filePath) => {
     };
 };
 
-export default createRepositoryLogger;
+export default createServerLogger;

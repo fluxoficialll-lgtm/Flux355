@@ -20,12 +20,25 @@ const createQueryLogger = (filePath) => {
             ...meta
         };
 
+        // Lógica de erro robusta
         if (meta instanceof Error) {
             logObject.stack = meta.stack;
             logObject.errorMessage = meta.message;
+        } else if (meta?.error instanceof Error) {
+            logObject.stack = meta.error.stack;
+            logObject.errorMessage = meta.error.message;
         }
 
-        logger[level](message, logObject);
+        // Fallback para nível de log inválido
+        if (typeof logger[level] === 'function') {
+            logger[level](message, logObject);
+        } else {
+            logger.warn(`[Logger] Nível de log inválido '${level}' utilizado. Usando 'info' como fallback.`, {
+                originalMessage: message,
+                originalMeta: logObject
+            });
+            logger.info(message, logObject);
+        }
     };
 
     return {
