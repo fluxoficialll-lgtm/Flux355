@@ -1,26 +1,25 @@
 
+// backend/ServicosBackend/Servico.Conversas.js
+
 import repositorioConversas from '../Repositorios/Repositorio.Conversas.js';
+import createServicoLogger from '../config/Log.Servicos.Backend.js';
+
+const logger = createServicoLogger('Servico.Conversas.js');
 
 const obterConversas = async (userId) => {
-    console.log('Iniciando busca de conversas para o usuário', { event: 'OBTER_CONVERSAS_START', userId });
-    // Validação básica do ID do usuário
+    logger.info(`Iniciando busca de conversas para o usuário ${userId}.`);
+    
     if (!userId) {
-        console.error('ID do usuário não fornecido para buscar conversas', { event: 'OBTER_CONVERSAS_VALIDATION_ERROR', userId });
+        logger.error('ID do usuário não foi fornecido para buscar as conversas.');
         throw new Error('ID do usuário é necessário para buscar conversas.');
     }
 
     try {
-        // Chama o repositório para obter os dados das conversas
         const conversas = await repositorioConversas.obterConversasPorUsuario(userId);
-
-        console.log('Conversas obtidas com sucesso', { event: 'OBTER_CONVERSAS_SUCCESS', userId, count: conversas.length });
-
-        // Pode-se adicionar mais lógica de negócios aqui, se necessário
-        // Por exemplo, formatar os dados antes de enviá-los de volta
-
+        logger.info(`Foram encontradas ${conversas.length} conversas para o usuário ${userId}.`);
         return conversas;
     } catch (error) {
-        console.error('Erro ao obter conversas do repositório', { event: 'OBTER_CONVERSAS_REPO_ERROR', userId, errorMessage: error.message });
+        logger.error(`Erro ao obter conversas para o usuário ${userId} do repositório.`, { error });
         throw error;
     }
 };

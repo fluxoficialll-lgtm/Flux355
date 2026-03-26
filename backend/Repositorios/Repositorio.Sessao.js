@@ -1,58 +1,52 @@
 
 import consultasSessao from '../database/GestaoDeDados/PostgreSQL/Consultas.Sessao.js';
+import createRepositoryLogger from '../config/Log.Repositorios.js';
+
+const logger = createRepositoryLogger('Repositorio.Sessao.js');
 
 const criar = async (dadosSessao) => {
-    console.log('Chamando camada de gestão de dados para criar sessão.', { event: 'DB_CREATE_SESSION_START' });
+    logger.info(`Iniciando criação de sessão para o usuário ${dadosSessao.user_id}.`);
     try {
         const novaSessao = await consultasSessao.criar(dadosSessao);
-        console.log('Sessão criada com sucesso na gestão de dados.', { event: 'DB_CREATE_SESSION_SUCCESS' });
+        logger.info(`Sessão para o usuário ${dadosSessao.user_id} criada com sucesso.`);
         return novaSessao;
     } catch (error) {
-        console.error('Erro ao criar sessão na gestão de dados', { 
-            event: 'DB_CREATE_SESSION_ERROR',
-            errorMessage: error.message,
-            stack: error.stack
-        });
+        logger.error(`Erro ao criar sessão para o usuário ${dadosSessao.user_id}.`, { error });
         throw error;
     }
 };
 
 const encontrarPorToken = async (token) => {
-    console.log('Chamando camada de gestão de dados para buscar sessão por token.', { event: 'DB_FIND_SESSION_BY_TOKEN_START' });
+    logger.info('Buscando sessão por token.');
     try {
         const sessao = await consultasSessao.encontrarPorToken(token);
-        console.log(sessao ? 'Sessão encontrada.' : 'Sessão não encontrada.', { 
-            event: sessao ? 'DB_FIND_SESSION_BY_TOKEN_FOUND' : 'DB_FIND_SESSION_BY_TOKEN_NOT_FOUND'
-        });
+        if (sessao) {
+            logger.info('Sessão encontrada por token.');
+        } else {
+            logger.info('Sessão não encontrada por token.');
+        }
         return sessao;
     } catch (error) {
-        console.error('Erro ao buscar sessão por token na gestão de dados', { 
-            event: 'DB_FIND_SESSION_BY_TOKEN_ERROR',
-            errorMessage: error.message,
-            stack: error.stack
-        });
+        logger.error('Erro ao buscar sessão por token.', { error });
         throw error;
     }
 };
 
 const deletarPorToken = async (token) => {
-    console.log('Chamando camada de gestão de dados para deletar sessão por token.', { event: 'DB_DELETE_SESSION_BY_TOKEN_START' });
+    logger.info('Deletando sessão por token.');
     try {
         const sessaoDeletada = await consultasSessao.deletarPorToken(token);
-        console.log(sessaoDeletada ? 'Sessão deletada com sucesso.' : 'Sessão não encontrada para deleção.', { 
-            event: sessaoDeletada ? 'DB_DELETE_SESSION_SUCCESS' : 'DB_DELETE_SESSION_NOT_FOUND'
-        });
+        if (sessaoDeletada) {
+            logger.info('Sessão deletada com sucesso.');
+        } else {
+            logger.info('Sessão não encontrada para deleção.');
+        }
         return sessaoDeletada;
     } catch (error) {
-        console.error('Erro ao deletar sessão por token na gestão de dados', { 
-            event: 'DB_DELETE_SESSION_ERROR',
-            errorMessage: error.message,
-            stack: error.stack
-         });
+        logger.error('Erro ao deletar sessão por token.', { error });
         throw error;
     }
 };
-
 
 const repositorioSessao = {
     criar,

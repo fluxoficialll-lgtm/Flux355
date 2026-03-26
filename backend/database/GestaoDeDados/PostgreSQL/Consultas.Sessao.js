@@ -1,5 +1,8 @@
 
 import pool from '../../Processo.Conexao.Banco.Dados.js';
+import createQueryLogger from '../../../config/Log.Queries.js';
+
+const logger = createQueryLogger('Consultas.Sessao.js');
 
 const criar = async (dadosSessao) => {
     const query = `
@@ -8,7 +11,6 @@ const criar = async (dadosSessao) => {
         RETURNING *;
     `;
     
-    // Parâmetros são mapeados diretamente do objeto para garantir a ordem e integridade
     const params = [
         dadosSessao.id,
         dadosSessao.user_id,
@@ -20,19 +22,10 @@ const criar = async (dadosSessao) => {
 
     try {
         const resultado = await pool.query(query, params);
-        console.log(`Sessão criada com sucesso para o usuário ${dadosSessao.user_id}`, { event: 'DB_CREATE_SESSION_SUCCESS' });
+        logger.info(`Sessão criada com sucesso para o usuário ${dadosSessao.user_id}`);
         return resultado.rows[0];
     } catch (error) {
-        console.error('Erro detalhado ao criar sessão no banco de dados', {
-            event: 'DB_CREATE_SESSION_ERROR',
-            errorMessage: error.message,
-            code: error.code, // Código de erro do PostgreSQL, ex: 23502
-            stack: error.stack,
-            query: query, // Loga a query para depuração
-            userId: dadosSessao.user_id, // Loga o ID do usuário
-        });
-        
-        // Relança o erro original para que as camadas superiores possam tratá-lo
+        logger.error(`Erro ao criar sessão no banco de dados para o usuário ${dadosSessao.user_id}`, { error });
         throw error;
     }
 };
@@ -44,10 +37,7 @@ const encontrarPorToken = async (token) => {
         const resultado = await pool.query(query, [token]);
         return resultado.rows[0];
     } catch (error) {
-        console.error('Erro ao buscar sessão por token', {
-            event: 'DB_FIND_SESSION_BY_TOKEN_ERROR',
-            errorMessage: error.message
-        });
+        logger.error('Erro ao buscar sessão por token', { error });
         throw new Error('Não foi possível buscar a sessão.');
     }
 };
@@ -58,16 +48,13 @@ const deletarPorToken = async (token) => {
     try {
         const resultado = await pool.query(query, [token]);
         if (resultado.rowCount > 0) {
-            console.log(`Sessão com token foi deletada com sucesso.`, { event: 'DB_DELETE_SESSION_SUCCESS' });
+            logger.info(`Sessão com token foi deletada com sucesso.`);
             return resultado.rows[0];
         }
-        console.warn(`Nenhuma sessão encontrada com o token para deletar.`, { event: 'DB_DELETE_SESSION_NOT_FOUND' });
+        logger.warn(`Nenhuma sessão encontrada com o token para deletar.`);
         return null;
     } catch (error) {
-        console.error('Erro ao deletar sessão por token', {
-            event: 'DB_DELETE_SESSION_ERROR',
-            errorMessage: error.message
-        });
+        logger.error('Erro ao deletar sessão por token', { error });
         throw new Error('Não foi possível deletar a sessão.');
     }
 };

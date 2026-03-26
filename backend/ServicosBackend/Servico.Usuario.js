@@ -5,14 +5,17 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import Usuario from '../models/Models.Estrutura.Usuario.js';
 import repositorioUsuario from '../Repositorios/Repositorio.Usuario.js';
+import createServicoLogger from '../config/Log.Servicos.Backend.js';
+
+const logger = createServicoLogger('Servico.Usuario.js');
 
 const registrarNovoUsuario = async (dadosUsuario) => {
     const { nome, email, senha } = dadosUsuario;
-    
-    console.log('Iniciando registro de novo usuário', { event: 'REGISTRATION_START', email });
+    logger.info(`Iniciando registro de novo usuário para o e-mail ${email}.`);
 
     const usuarioExistente = await repositorioUsuario.findByEmail(email);
     if (usuarioExistente) {
+        logger.warn(`Tentativa de registro com e-mail ${email} que já está em uso.`);
         throw new Error('Este e-mail já está em uso.');
     }
 
@@ -27,34 +30,34 @@ const registrarNovoUsuario = async (dadosUsuario) => {
     await novoUsuario.criptografarSenha();
 
     const usuarioDb = await repositorioUsuario.createUser(novoUsuario.paraBancoDeDados());
-    console.log('Usuário registrado com sucesso', { event: 'REGISTRATION_SUCCESS', userId: usuarioDb.id, email });
+    logger.info(`Usuário ${usuarioDb.id} registrado com sucesso.`);
 
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
 const autenticarUsuarioPorCredenciais = async (credenciais) => {
     const { email, senha } = credenciais;
-    
-    console.log('Iniciando autenticação por credenciais', { event: 'AUTH_CREDENTIALS_START', email });
+    logger.info(`Iniciando autenticação por credenciais para o e-mail ${email}.`);
 
     const usuarioDb = await repositorioUsuario.findByEmail(email);
     if (!usuarioDb || !usuarioDb.password_hash) {
+        logger.warn(`Tentativa de autenticação com credenciais inválidas para o e-mail ${email}.`);
         throw new Error('Credenciais inválidas.');
     }
 
     const senhaValida = await bcrypt.compare(senha, usuarioDb.password_hash);
     if (!senhaValida) {
+        logger.warn(`Tentativa de autenticação com senha inválida para o e-mail ${email}.`);
         throw new Error('Credenciais inválidas.');
     }
 
-    console.log('Usuário autenticado com sucesso', { event: 'AUTH_CREDENTIALS_SUCCESS', email, userId: usuarioDb.id });
+    logger.info(`Usuário ${usuarioDb.id} autenticado com sucesso.`);
     return Usuario.deBancoDeDados(usuarioDb);
 };
 
 const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
     const { nome, email, google_id } = dadosGoogle;
-    
-    console.log('Iniciando autenticação ou criação por Google', { event: 'AUTH_GOOGLE_START', email });
+    logger.info(`Iniciando autenticação ou criação por Google para o e-mail ${email}.`);
 
     let usuarioDb = await repositorioUsuario.findByGoogleId(google_id);
     let isNewUser = false;
@@ -62,6 +65,7 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
     if (!usuarioDb) {
         const usuarioExistente = await repositorioUsuario.findByEmail(email);
         if (usuarioExistente) {
+            logger.warn(`Tentativa de criação de usuário Google com e-mail ${email} que já está em uso.`);
             throw new Error("Este e-mail já está cadastrado. Faça login com sua senha.");
         }
 
@@ -76,7 +80,7 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
         });
         
         usuarioDb = await repositorioUsuario.createUser(novoUsuario.paraBancoDeDados());
-        console.log('Novo usuário criado via Google', { event: 'AUTH_GOOGLE_NEW_USER', userId: usuarioDb.id, email });
+        logger.info(`Novo usuário ${usuarioDb.id} criado via Google.`);
     }
 
     return {
@@ -86,10 +90,11 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
 };
 
 const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
-    console.log('Iniciando atualização de perfil de usuário', { event: 'PROFILE_UPDATE_START', userId: idUsuario });
+    logger.info(`Iniciando atualização de perfil para o usuário ${idUsuario}.`);
 
     const usuarioExistente = await repositorioUsuario.encontrarPorId(idUsuario);
     if (!usuarioExistente) {
+        logger.warn(`Tentativa de atualização de perfil para usuário não encontrado com ID ${idUsuario}.`);
         throw new Error('Usuário não encontrado.');
     }
 
@@ -103,15 +108,16 @@ const atualizarPerfilUsuario = async (idUsuario, dadosPerfil) => {
 
     const usuarioAtualizadoDb = await repositorioUsuario.updateUser(idUsuario, dadosParaAtualizar);
     
-    console.log('Perfil de usuário atualizado com sucesso', { event: 'PROFILE_UPDATE_SUCCESS', userId: idUsuario });
+    logger.info(`Perfil do usuário ${idUsuario} atualizado com sucesso.`);
 
     return Usuario.deBancoDeDados(usuarioAtualizadoDb);
 };
 
 const encontrarUsuarioPorId = async (id) => {
-    console.log('Buscando usuário por ID', { event: 'FIND_USER_BY_ID', userId: id });
+    logger.info(`Buscando usuário por ID ${id}.`);
     const usuarioDb = await repositorioUsuario.encontrarPorId(id);
     if (!usuarioDb) {
+        logger.warn(`Usuário não encontrado por ID ${id}.`);
         return null;
     }
     return Usuario.deBancoDeDados(usuarioDb);
