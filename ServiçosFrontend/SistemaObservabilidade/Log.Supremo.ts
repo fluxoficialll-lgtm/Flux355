@@ -9,7 +9,7 @@
 // Módulos Fundamentais
 import LogProvider from './Sistema.Mensageiro.Cliente.Backend.ts';
 import { rastreadorDeEventos } from './Rastreador.Eventos.js';
-import LogAPIAutenticacaoSuprema from './Log.API.Autenticacao.Suprema'; // Importa o novo logger
+import { createApiLogger } from './Log.API'; // Importa a nova fábrica de logger
 
 // Módulos Especializados
 import AuditoriaDB from './Auditoria.DB';
@@ -37,7 +37,7 @@ export const LogSupremo = {
   
   /** Monitoramento detalhado de todas as requisições e respostas de APIs externas. */
   API: {
-    Autenticacao: LogAPIAutenticacaoSuprema,
+    Autenticacao: createApiLogger('AutenticacaoSupremo'),
   },
 
   /** Rastreamento de eventos de interação do usuário na interface (cliques, etc.). */

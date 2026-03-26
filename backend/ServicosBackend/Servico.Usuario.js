@@ -83,8 +83,9 @@ const autenticarOuCriarPorGoogle = async (dadosGoogle) => {
         logger.info(`Novo usuário ${usuarioDb.id} criado via Google.`);
     }
 
+    const usuario = Usuario.deBancoDeDados(usuarioDb);
     return {
-        usuario: Usuario.deBancoDeDados(usuarioDb),
+        usuario: { ...usuario, id: usuarioDb.id },
         isNewUser: isNewUser
     };
 };

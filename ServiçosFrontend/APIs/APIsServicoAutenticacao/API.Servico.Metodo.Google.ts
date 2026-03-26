@@ -5,11 +5,13 @@ import {
     HandleAuthCallbackResponse, HandleAuthCallbackResponseSchema,
     IServicoMetodoGoogle
 } from '../../Contratos/Contrato.Servico.Metodo.Google';
-import { LogSupremo } from '../../SistemaObservabilidade/Log.Supremo';
+import { createApiLogger } from '../../SistemaObservabilidade/Log.API';
 
 /**
  * @file Implementação da API para autenticação com Google, utilizando contratos e observabilidade.
  */
+
+const apiLogger = createApiLogger('ServicoMetodoGoogle');
 
 const criarTraceIdAuth = (): string => {
     const traceId = Math.random().toString(36).substring(2, 15);
@@ -27,13 +29,13 @@ class ServicoMetodoGoogle implements IServicoMetodoGoogle {
 
     redirectToGoogleAuth(): void {
         const traceId = criarTraceIdAuth();
-        LogSupremo.Negocio.registrar('INICIO_FLUXO_LOGIN_GOOGLE', {}, traceId);
+        apiLogger.logRequest('redirectToGoogleAuth', { traceId });
 
         const googleClientId = VariaveisFrontend.googleClientId;
 
         if (!googleClientId || googleClientId === 'CHAVE_NAO_DEFINIDA') {
             const error = new Error("O login com Google não está configurado: Client ID não definido.");
-            LogSupremo.Erros.capturar(error, { motivo: "Configuração ausente" }, traceId);
+            apiLogger.logFailure('redirectToGoogleAuth', error, { traceId });
             throw error;
         }
 
@@ -49,37 +51,28 @@ class ServicoMetodoGoogle implements IServicoMetodoGoogle {
 
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
         
-        LogSupremo.Log.info('Auth.Google', 'Redirecionando para a URL de autenticação do Google.', {}, traceId);
+        apiLogger.logSuccess('redirectToGoogleAuth', { authUrl });
         window.location.href = authUrl;
     }
 
     async handleAuthCallback(code: string, referredBy?: string): Promise<HandleAuthCallbackResponse> {
         const traceId = obterTraceIdAuth();
-
-        LogSupremo.Log.info('Auth.Google', 'Callback do Google recebido. Validando e enviando código para o backend.', { hasReferredBy: !!referredBy }, traceId);
+        apiLogger.logRequest('handleAuthCallback', { code, referredBy, traceId });
 
         // 1. Validar os dados de entrada com o schema
         const dadosParaBackend: HandleAuthCallbackRequest = HandleAuthCallbackRequestSchema.parse({ code, referredBy });
 
-        const performanceTimer = LogSupremo.Performance.iniciarTimer('backend.auth.google', traceId);
-
         try {
             const respostaBackend = await ClienteBackend.post('/auth/google', dadosParaBackend);
             
-            performanceTimer.fim({ success: true, isNewUser: respostaBackend.data.isNewUser });
-
             // 2. Validar a resposta do backend com o schema
             const dadosValidados = HandleAuthCallbackResponseSchema.parse(respostaBackend.data);
 
-            LogSupremo.Negocio.registrar('SUCESSO_LOGIN_GOOGLE', { isNewUser: dadosValidados.isNewUser }, traceId);
-            LogSupremo.Log.info('Auth.Google', 'Autenticação via backend bem-sucedida e validada.', { userId: dadosValidados.user?.id }, traceId);
+            apiLogger.logSuccess('handleAuthCallback', { response: dadosValidados, traceId });
 
             return dadosValidados;
         } catch (error) {
-            performanceTimer.fim({ success: false });
-
-            LogSupremo.Erros.capturar(error as Error, { code, referredBy }, traceId);
-            LogSupremo.Negocio.registrar('FALHA_LOGIN_GOOGLE', { motivo: (error as Error).message }, traceId);
+            apiLogger.logFailure('handleAuthCallback', error, { code, referredBy, traceId });
             
             throw error;
         }

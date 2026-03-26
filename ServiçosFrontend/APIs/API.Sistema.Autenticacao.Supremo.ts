@@ -1,3 +1,4 @@
+
 import ClienteBackend from '../Cliente.Backend.js';
 import {
     IAutenticacaoServico,
@@ -9,7 +10,10 @@ import {
     GoogleLoginResponseSchema,
 } from '../Contratos/Contrato.Autenticacao';
 import { AxiosResponse } from 'axios';
-import { LogSupremo } from '../SistemaObservabilidade/Log.Supremo';
+import { createApiLogger } from '../SistemaObservabilidade/Log.API';
+
+// Cria um logger específico para este serviço de API.
+const apiLogger = createApiLogger('AutenticacaoSupremo');
 
 /**
  * @file Implementação concreta do serviço de autenticação que interage com o backend real.
@@ -20,42 +24,42 @@ class AutenticacaoAPISupremo implements IAutenticacaoServico {
     
     /**
      * Realiza o login do usuário.
-     * 1. Valida os dados de entrada usando o schema Zod.
-     * 2. Envia a requisição para o backend se os dados forem válidos.
-     * 
      * @param data - Os dados de login (email e senha).
      * @returns Uma promessa que resolve para a resposta de login da API.
      * @throws {ZodError} Se a validação dos dados de entrada falhar.
      */
     async login(data: LoginRequest): Promise<LoginResponse> {
-        LogSupremo.API.Autenticacao.inicioLogin(data.email);
+        apiLogger.logRequest('login', { email: data.email }); // Log do início da requisição
         try {
-            // 1. Validar os dados de entrada ANTES de fazer a chamada de rede.
-            // O .parse() joga um erro se os dados não corresponderem ao schema.
             const dadosValidados = LoginRequestSchema.parse(data);
             
-            // 2. Enviar a requisição para o backend com os dados já validados.
             const resposta: AxiosResponse<LoginResponse> = await ClienteBackend.post('/auth/login', dadosValidados);
 
-            LogSupremo.API.Autenticacao.sucessoLogin(data.email, resposta.data);
+            apiLogger.logSuccess('login', resposta.data); // Log de sucesso
 
-            // Retorna apenas os dados da resposta, conforme o contrato.
             return resposta.data;
         } catch (error) {
-            LogSupremo.API.Autenticacao.falhaLogin(data.email, error);
+            apiLogger.logFailure('login', error, { email: data.email }); // Log de falha
             throw error;
         }
     }
 
+    /**
+     * Realiza o login ou criação de conta via Google.
+     * @param data - O token de credencial do Google.
+     * @returns Uma promessa que resolve para a resposta da API, contendo dados do usuário e token.
+     */
     async resolverSessaoLogin(data: GoogleLoginRequest): Promise<GoogleLoginResponse> {
-        LogSupremo.API.Autenticacao.inicioLoginGoogle(data.token);
+        apiLogger.logRequest('resolverSessaoLogin', { token: '[TOKEN OMITIDO]' }); // Log do início
         try {
             const resposta: AxiosResponse<GoogleLoginResponse> = await ClienteBackend.post('/auth/google/callback', data);
             const dadosValidados = GoogleLoginResponseSchema.parse(resposta.data);
-            LogSupremo.API.Autenticacao.sucessoLoginGoogle(dadosValidados);
+            
+            apiLogger.logSuccess('resolverSessaoLogin', dadosValidados); // Log de sucesso
+            
             return dadosValidados;
         } catch (error) {
-            LogSupremo.API.Autenticacao.falhaLoginGoogle(error);
+            apiLogger.logFailure('resolverSessaoLogin', error); // Log de falha
             throw error;
         }
     }
