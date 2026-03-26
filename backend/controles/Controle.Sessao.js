@@ -91,6 +91,11 @@ const googleAuth = async (req, res, next) => {
 
         const { usuario, isNewUser } = await servicoUsuario.autenticarOuCriarPorGoogle(dadosGoogleValidados);
         
+        // Garante que o usuário existe e tem um ID antes de prosseguir
+        if (!usuario || !usuario.id) {
+            throw new Error('Falha ao autenticar ou criar usuário.');
+        }
+
         const { token: sessionToken, dadosSessao } = await servicoSessao.prepararNovaSessao({ usuario, dadosRequisicao });
         const dadosSessaoValidados = validadorSessao.validarNovaSessao(dadosSessao);
         await servicoSessao.salvarSessao(dadosSessaoValidados);
@@ -99,7 +104,7 @@ const googleAuth = async (req, res, next) => {
         return ServicoResposta.sucesso(res, { token: sessionToken, user: usuario.paraRespostaHttp(), isNewUser });
 
     } catch (error) {
-        logger.error('Erro na autenticação com Google:', { error });
+        logger.error('Erro na autenticação com Google:', { error: { message: error.message, stack: error.stack } });
         if (error.message.includes('Faça login com sua senha')) {
             return ServicoResposta.requisicaoInvalida(res, error.message);
         }
