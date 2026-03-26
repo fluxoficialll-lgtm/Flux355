@@ -1,41 +1,52 @@
 
-// backend/config/Log.Servidor.js
-
 import path from 'path';
+import { fileURLToPath } from 'url';
 import logger from './logger.js';
 
 /**
- * Cria uma instância de logger para um componente específico do servidor.
- * @param {string} componentName - O nome do componente do servidor (ex: 'Servidor Principal', 'Express', 'Socket.io').
- * @param {string} filePath - O caminho do arquivo que está usando o logger.
+ * Cria uma instância de logger para um componente específico do servidor a partir da URL do módulo.
+ * @param {string} moduleUrl - A URL do módulo (geralmente import.meta.url).
  * @returns {object} - Um objeto com métodos de log (info, warn, error, debug).
  */
-const createServerLogger = (componentName, filePath) => {
-    const fileName = path.basename(filePath);
+const createServerLogger = (moduleUrl) => {
+    let componentName = 'Servidor'; // Valor padrão
+    try {
+        if (typeof moduleUrl === 'string' && moduleUrl) {
+            const filePath = fileURLToPath(moduleUrl);
+            componentName = path.basename(filePath, path.extname(filePath)); // Remove a extensão
+        }
+    } catch (e) {
+        // Se a conversão falhar, usa o nome do componente padrão. 
+        // Isso torna o logger mais resiliente.
+        console.error('Erro ao extrair nome do componente do módulo URL:', e);
+    }
 
     const log = (level, message, meta = {}) => {
         const logObject = {
             componente: componentName,
-            arquivo: fileName,
-            ...meta
+            ...meta,
         };
 
-        // Lógica de erro robusta
-        if (meta instanceof Error) {
-            logObject.stack = meta.stack;
-            logObject.errorMessage = meta.message;
-        } else if (meta?.error instanceof Error) {
-            logObject.stack = meta.error.stack;
-            logObject.errorMessage = meta.error.message;
+        // Lógica de erro robusta para extrair stack trace
+        const errorInstance = meta instanceof Error ? meta : (meta?.error instanceof Error ? meta.error : null);
+        if (errorInstance) {
+            logObject.stack = errorInstance.stack;
+            // Não sobrescreva a mensagem principal se já for detalhada
+            if (!message.includes(errorInstance.message)) {
+                 message = `${message}: ${errorInstance.message}`;
+            }
+            // Remove o objeto de erro duplicado do meta
+            if (meta.error === errorInstance) {
+                delete logObject.error;
+            }
         }
 
-        // Fallback para nível de log inválido
         if (typeof logger[level] === 'function') {
             logger[level](message, logObject);
         } else {
-            logger.warn(`[Logger] Nível de log inválido '${level}' utilizado. Usando 'info' como fallback.`, {
+            logger.warn(`[Logger] Nível de log inválido '${level}'. Usando 'info' como fallback.`, {
                 originalMessage: message,
-                originalMeta: logObject
+                originalMeta: logObject,
             });
             logger.info(message, logObject);
         }
