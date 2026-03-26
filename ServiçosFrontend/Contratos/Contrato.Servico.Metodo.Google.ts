@@ -5,16 +5,13 @@ export const UsuarioSchema = z.object({
   id: z.string(),
   nome: z.string(),
   email: z.string().email(),
-  apelido: z.string(),
-  bio: z.string(),
-  site: z.string().url().or(z.literal('')), // Aceita URL ou string vazia
-  urlFoto: z.string().url().or(z.literal('')), // Aceita URL ou string vazia
+  bio: z.string().nullable(),
   privado: z.boolean(),
   perfilCompleto: z.boolean(),
-  seguidores: z.array(z.string()),
-  seguindo: z.array(z.string()),
-  dataCriacao: z.date(),
-  dataAtualizacao: z.date(),
+  contagemSeguidores: z.number(),
+  contagemSeguindo: z.number(),
+  seguidores: z.array(z.any()),
+  seguindo: z.array(z.any()),
 });
 
 // 2. Schema para validar o corpo da requisição enviada ao backend.
