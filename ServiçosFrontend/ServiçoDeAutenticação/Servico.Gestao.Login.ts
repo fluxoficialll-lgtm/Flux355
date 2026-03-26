@@ -2,11 +2,12 @@
 import { LoginUsuarioDTO as LoginDto } from '../../../types/Entrada/Dto.Estrutura.Usuario';
 import { Usuario } from '../../../types/Saida/Types.Estrutura.Usuario';
 import ClienteBackend from '../Cliente.Backend';
-import servicoMetodoGoogle from './Servico.Metodo.Google';
+import { getInstancia as getInstanciaGoogle } from './Servico.Metodo.Google';
 import { servicoMetodoEmailSenha } from './Servico.Metodo.EmailSenha';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 
 const log = createServiceLogger('Servico.Gestao.Login');
+const servicoMetodoGoogle = getInstanciaGoogle();
 
 /**
  * @file Gerencia o processo de login, seja por email/senha ou via Google,

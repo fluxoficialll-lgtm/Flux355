@@ -30,4 +30,18 @@ if (config.VITE_APP_ENV === 'simulation') {
 }
 
 // --- Exportação do Serviço Selecionado ---
-export default servicoMetodoGoogle;
+
+class ServicoMetodoGoogleSingleton {
+    private static instancia: IServicoMetodoGoogle;
+
+    private constructor() { }
+
+    public static getInstancia(): IServicoMetodoGoogle {
+        if (!ServicoMetodoGoogleSingleton.instancia) {
+            ServicoMetodoGoogleSingleton.instancia = servicoMetodoGoogle;
+        }
+        return ServicoMetodoGoogleSingleton.instancia;
+    }
+}
+
+export const getInstancia = () => ServicoMetodoGoogleSingleton.getInstancia();

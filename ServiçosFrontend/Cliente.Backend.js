@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import VariaveisFrontend from './Config/Variaveis.Frontend.js';
-import { registrar } from './config/EndpointRegistry.js';
 import LogClienteBackend from './SistemaObservabilidade/Log.ClienteBackend.ts';
 
 /**
@@ -37,8 +36,6 @@ ClienteBackend.interceptors.request.use(
         config.startTime = performance.now();
 
         LogClienteBackend.logRequest(config);
-
-        registrar('Frontend', [`${config.method.toUpperCase()} ${config.url}`]);
 
         const token = localStorage.getItem('userToken');
         if (token) {
