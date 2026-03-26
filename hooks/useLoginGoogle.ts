@@ -1,16 +1,20 @@
 
 import { useState, useCallback } from 'react';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import LogLoginGoogle from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook.Login.Google';
+import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
+
+const hookLogger = createHookLogger('useLoginGoogle');
 
 export const useLoginGoogle = () => {
     const [processando, setProcessando] = useState(false);
     const [erro, setErro] = useState('');
 
     const loginComGoogle = useCallback(async (credentialResponse: any) => {
+        hookLogger.logStart('loginComGoogle', { hasCredential: !!credentialResponse?.credential });
+
         if (!credentialResponse || !credentialResponse.credential) {
             const errorMessage = "A credencial do Google fornecida é inválida ou nula.";
-            LogLoginGoogle.loginFalha(new Error(errorMessage), 'validacao_credencial');
+            hookLogger.logError('loginComGoogle', new Error(errorMessage), { reason: 'validacao_credencial' });
             setErro(errorMessage);
             return;
         }
@@ -20,9 +24,9 @@ export const useLoginGoogle = () => {
 
         try {
             await SistemaAutenticacaoSupremo.loginWithGoogle(credentialResponse.credential, undefined);
+            hookLogger.logSuccess('loginComGoogle');
         } catch (err: any) {
-            // O erro já foi logado dentro do SistemaAutenticacaoSupremo.
-            // Apenas atualizamos o estado para a UI.
+            hookLogger.logError('loginComGoogle', err);
             setErro(err.message || 'Falha no login com Google.');
         } finally {
             setProcessando(false);

@@ -1,34 +1,31 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '../ServiçosFrontend/ServiçoDeAutenticação/Provedor.Autenticacao';
-import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
+import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
+
+const hookLogger = createHookLogger('useSessao');
 
 export const useSessao = () => {
   const { user, loading: carregandoSessao, error: erroSessao } = useAuth();
 
   useEffect(() => {
     if (carregandoSessao) {
-      LogSupremo.Hook.Sessao.inicioVerificacao();
-    }
-  }, [carregandoSessao]);
-
-  useEffect(() => {
-    if (!carregandoSessao) {
+      hookLogger.logStart('verificacaoSessao');
+    } else {
       if (user) {
-        LogSupremo.Hook.Sessao.sessaoEstabelecida({
-          id: user.id,
-          nome_usuario: user.nome_usuario,
-          email: user.email
+        hookLogger.logSuccess('verificacaoSessao', { 
+          status: 'estabelecida', 
+          user: { id: user.id, nome_usuario: user.nome_usuario, email: user.email }
         });
       } else {
-        LogSupremo.Hook.Sessao.sessaoAnonima();
+        hookLogger.logSuccess('verificacaoSessao', { status: 'anonima' });
       }
     }
   }, [user, carregandoSessao]);
 
   useEffect(() => {
     if (erroSessao) {
-      LogSupremo.Hook.Sessao.erroAoCarregar(erroSessao);
+      hookLogger.logError('verificacaoSessao', erroSessao);
     }
   }, [erroSessao]);
 

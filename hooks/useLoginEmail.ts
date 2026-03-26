@@ -1,29 +1,34 @@
 
 import { useState } from 'react';
 import SistemaAutenticacaoSupremo from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { LogSupremo } from '../ServiçosFrontend/SistemaObservabilidade/Log.Supremo';
+import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
+
+const hookLogger = createHookLogger('useLoginEmail');
 
 export const useLoginEmail = () => {
     const [processando, setProcessando] = useState(false);
     const [erro, setErro] = useState('');
 
     const loginComEmail = async ({ email, senha }: { email: string; senha: string }) => {
+        hookLogger.logStart('loginComEmail', { email });
+
         if (!email || !senha) {
-            setErro('Email e senha são obrigatórios.');
+            const errorMessage = 'Email e senha são obrigatórios.';
+            hookLogger.logError('loginComEmail', new Error(errorMessage), { email, reason: 'credenciais_ausentes' });
+            setErro(errorMessage);
             return;
         }
         
         setProcessando(true);
         setErro('');
-        LogSupremo.Hook.LoginEmailSenha.inicioLogin(email);
 
         try {
             const result = await SistemaAutenticacaoSupremo.login({ email, senha });
             if (result && result.user) {
-                LogSupremo.Hook.LoginEmailSenha.loginSucesso(result.user.id, email);
+                hookLogger.logSuccess('loginComEmail', { userId: result.user.id, email });
             }
         } catch (err: any) {
-            LogSupremo.Hook.LoginEmailSenha.loginFalha(email, err);
+            hookLogger.logError('loginComEmail', err, { email });
             setErro(err.message || 'Credenciais inválidas.');
         } finally {
             setProcessando(false);
