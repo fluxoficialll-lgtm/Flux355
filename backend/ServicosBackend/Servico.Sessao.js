@@ -7,6 +7,13 @@ import repositorioSessao from '../Repositorios/Repositorio.Sessao.js';
 import Sessao from '../models/Models.Estrutura.Sessao.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_segredo_jwt_super_secreto';
+const JWT_EXPIRES_IN = '24h';
+
+const calcularDataExpiracao = () => {
+    // Adiciona 24 horas à data atual
+    return new Date(Date.now() + 24 * 60 * 60 * 1000);
+};
+
 
 /**
  * Prepara os dados de uma nova sessão e gera um token JWT, sem persistir no banco.
@@ -21,13 +28,16 @@ const prepararNovaSessao = async (data) => {
     console.log('Preparando nova sessão', { event: 'SESSION_PREPARE_START', userId: usuario.id });
 
     const payload = { user: usuario.paraRespostaHttp() };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+    const dataExpiracao = calcularDataExpiracao();
 
     const dadosSessao = {
         idUsuario: usuario.id,
         token,
         userAgent: dadosRequisicao.userAgent,
         enderecoIp: dadosRequisicao.ipAddress,
+        expires_at: dataExpiracao, // Corrigido aqui
     };
     
     return { token, dadosSessao };
@@ -42,7 +52,6 @@ const salvarSessao = async (dadosSessaoValidados) => {
     const novaSessao = new Sessao({
         id: uuidv4(),
         ...dadosSessaoValidados,
-        dataExpiracao: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
     });
 
     await repositorioSessao.criar(novaSessao.paraBancoDeDados());
