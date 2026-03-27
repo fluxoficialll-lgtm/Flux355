@@ -38,6 +38,10 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
     return { user };
   }
 
+  iniciarLoginComGoogle(): void {
+    this.gestaoLogin.redirectToGoogle();
+  }
+
   async resolverSessaoLogin(data: GoogleLoginRequest): Promise<GoogleLoginResponse> {
     const { token, user, isNewUser } = await this.gestaoLogin.handleGoogleCallback(data.code, data.referredBy);
     // @ts-ignore
@@ -115,6 +119,7 @@ let instanciaSuprema = null;
 
 export const getInstanciaSuprema = () => {
   if (!instanciaSuprema) {
+    // @ts-ignore
     instanciaSuprema = new SistemaAutenticacaoSupremo();
   }
   return instanciaSuprema;
