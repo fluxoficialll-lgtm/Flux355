@@ -1,7 +1,7 @@
 
 // Presumimos que um cliente backend genérico já existe e está configurado.
 // Este cliente (ex: axios) é quem de fato faz as requisições HTTP.
-import { clienteBackend } from '../Infra/ClienteBackend'; 
+import { clienteBackend } from '../Cliente.Backend.js'; 
 import { ILoginEmailParams } from '../Contratos/Contrato.Autenticacao';
 import { IRegistroParams } from '../ServiçoDeAutenticação/Processo.Registrar';
 import { IPerfilParaCompletar } from '../ServiçoDeAutenticação/Processo.Completar.Perfil';
