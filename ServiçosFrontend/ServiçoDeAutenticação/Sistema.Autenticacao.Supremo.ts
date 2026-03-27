@@ -106,8 +106,8 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   }
 
   async obterSessao(): Promise<Usuario | null> {
-    // @ts-ignore // TODO: Revisar implementação após refatoração
-    return this.gestaoSessao.validateSession();
+    // Correção: Substituído `validateSession` por `getCurrentUser`, que existe no processo de gestão de sessão.
+    return this.gestaoSessao.getCurrentUser();
   }
 
   getCurrentUser() {
