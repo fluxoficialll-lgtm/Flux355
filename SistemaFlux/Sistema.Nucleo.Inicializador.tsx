@@ -4,6 +4,9 @@ import { createRoot } from 'react-dom/client';
 import SistemaNucleoApp from './Sistema.Nucleo.App';
 import { loadEnvironment } from '../ServiçosFrontend/ValidaçãoDeAmbiente/config.ts';
 import AppFlux from './App.Flux';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 /**
  * Ponto de Entrada da Aplicação (Entrypoint).
@@ -27,10 +30,16 @@ export function montarNucleoReact() {
     throw new Error("Elemento 'root' não foi encontrado.");
   }
 
+  if (!GOOGLE_CLIENT_ID) {
+    console.error("VITE_GOOGLE_CLIENT_ID não está definido. O login com Google não funcionará.");
+  }
+
   const root = createRoot(rootElement);
   root.render(
     <React.StrictMode>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID!}>
         <SistemaNucleoApp />
+      </GoogleOAuthProvider>
     </React.StrictMode>
   );
 
