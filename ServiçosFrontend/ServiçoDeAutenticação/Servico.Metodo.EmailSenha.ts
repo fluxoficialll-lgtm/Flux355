@@ -1,45 +1,49 @@
 
 import { config } from '../ValidaçãoDeAmbiente/config';
-import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
-import { LoginUsuarioDTO as LoginDto } from '../../../types/Entrada/Dto.Estrutura.Usuario';
+import { UsuarioAutenticado, LoginRequest } from '../../Contratos/Contrato.Autenticacao';
 import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
-import { servicoGestaoPerfil } from './Servico.Gestao.Perfil';
+import { mockServicoPerfilUsuario } from '../ServiçoDeSimulação/simulacoes/Simulacao.Perfil.Usuario';
+
+// A interface de resposta esperada pelo Servico.Gestao.Login
+interface LoginResponse {
+    token: string;
+    user: UsuarioAutenticado | null;
+}
 
 // --- Interface ---
 export interface IServicoEmailSenhaAuth {
-    autenticar(dadosLogin: LoginDto): Promise<{ token: string; user: Usuario | null }>;
+    autenticar(dadosLogin: LoginRequest): Promise<LoginResponse>;
 }
 
-// --- Real Implementation ---
+// --- Implementação Real ---
 class ServicoEmailSenhaAuthReal implements IServicoEmailSenhaAuth {
-    async autenticar(dadosLogin: LoginDto): Promise<{ token: string; user: Usuario | null }> {
+    async autenticar(dadosLogin: LoginRequest): Promise<LoginResponse> {
         console.log("Real Email/Senha Auth: Iniciando autenticação...");
-        const { data } = await authApi.login(dadosLogin.email, dadosLogin.password);
-        if (data && data.token && data.user) {
+        // A API real retorna a resposta dentro de `data`
+        const response = await authApi.login(dadosLogin.email, dadosLogin.password);
+        
+        if (response && response.data && response.data.token && response.data.user) {
             console.log("Real Email/Senha Auth: Autenticação bem-sucedida.");
-            return data;
+            // A API real usa 'user', não 'usuario'.
+            return { token: response.data.token, user: response.data.user };
         }
+
         throw new Error('Resposta de login inválida do servidor.');
     }
 }
 
-// --- Simulated Implementation ---
+// --- Implementação Simulada ---
 class ServicoEmailSenhaAuthSimulado implements IServicoEmailSenhaAuth {
-    async autenticar(dadosLogin: LoginDto): Promise<{ token: string; user: any | null }> {
-        console.log("Simulated Email/Senha Auth: Iniciando autenticação...");
+    async autenticar(dadosLogin: LoginRequest): Promise<LoginResponse> {
+        console.log(`Simulated Email/Senha Auth: Logando com ${dadosLogin.email}...`);
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        const user = await servicoGestaoPerfil.getOwnProfile();
+        const user = await mockServicoPerfilUsuario.getOwnProfile();
         
-        // Adicionar uma senha simulada ao objeto de usuário
-        const userComSenha = {
-            ...user,
-            password: 'password_simulada'
-        };
-
-        const simulatedResponse = {
-            token: 'simulated-email-jwt-token',
-            user: userComSenha
+        // CORREÇÃO: O campo deve se chamar `user`, não `usuario`.
+        const simulatedResponse: LoginResponse = {
+            token: `simulated-email-jwt-token-for-${dadosLogin.email}`,
+            user: user,
         };
 
         console.log("Simulated Email/Senha Auth: Autenticação bem-sucedida.");
@@ -47,7 +51,7 @@ class ServicoEmailSenhaAuthSimulado implements IServicoEmailSenhaAuth {
     }
 }
 
-// --- Service Selection ---
+// --- Seleção do Serviço ---
 let servicoSelecionado: IServicoEmailSenhaAuth;
 
 if (config.VITE_APP_ENV === 'simulation') {

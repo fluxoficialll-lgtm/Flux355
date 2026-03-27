@@ -1,36 +1,51 @@
 
 import { config } from '../ValidaçãoDeAmbiente/config';
-import { Usuario } from '../../types/Saida/Types.Estrutura.Usuario';
-
-// Importa as implementações real e simulada
+import { UsuarioAutenticado } from '../../Contratos/Contrato.Autenticacao';
 import APIGoogle from '../APIs/APIsServicoAutenticacao/API.Servico.Metodo.Google';
-import * as SimulacaoGoogle from '../ServiçoDeSimulação/simulacoes/Simulacao.Servico.Metodo.Google';
+import { mockServicoPerfilUsuario } from '../ServiçoDeSimulação/simulacoes/Simulacao.Perfil.Usuario';
 
 /**
- * @file Módulo seletor que exporta a implementação da API de autenticação do Google (real ou simulada)
- * com base na configuração do ambiente.
+ * @file Módulo que gerencia a autenticação com o Google, alternando entre a implementação real e a simulada.
  */
 
+// A interface de resposta esperada pelo Servico.Gestao.Login
+interface GoogleLoginResponse {
+    token: string;
+    user: UsuarioAutenticado | null;
+    isNewUser?: boolean;
+}
+
 // --- Definição da Interface do Serviço ---
-// Garante que ambas as implementações (real e simulada) sigam o mesmo contrato.
 interface IServicoMetodoGoogle {
     redirectToGoogleAuth(): void;
-    handleAuthCallback(code: string, referredBy?: string): Promise<{ token: string; user: Usuario | null, isNewUser?: boolean }>;
+    handleAuthCallback(code: string, referredBy?: string): Promise<GoogleLoginResponse>;
 }
 
-// --- Seleção da Implementação ---
-let servicoMetodoGoogle: IServicoMetodoGoogle;
+// --- Implementação Simulada ---
+class ServicoGoogleAuthSimulado implements IServicoMetodoGoogle {
+    redirectToGoogleAuth(): void {
+        console.log("Simulated Google Auth: Redirecionando para a página de login simulada do Google...");
+    }
 
-if (config.VITE_APP_ENV === 'simulation') {
-    console.log("INFO: [Servico.Metodo.Google] Usando MODO DE SIMULAÇÃO.");
-    servicoMetodoGoogle = SimulacaoGoogle;
-} else {
-    console.log("INFO: [Servico.Metodo.Google] Usando API REAL.");
-    servicoMetodoGoogle = APIGoogle;
+    async handleAuthCallback(code: string, referredBy?: string): Promise<GoogleLoginResponse> {
+        console.log("Simulated Google Auth: Lidando com o callback de autenticação...");
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const user = await mockServicoPerfilUsuario.getOwnProfile();
+        
+        // CORREÇÃO: O campo deve se chamar `user`, não `usuario`.
+        const simulatedResponse: GoogleLoginResponse = {
+            token: 'simulated-google-jwt-token',
+            user: user,
+            isNewUser: Math.random() < 0.5,
+        };
+
+        console.log("Simulated Google Auth: Autenticação bem-sucedida.");
+        return simulatedResponse;
+    }
 }
 
-// --- Exportação do Serviço Selecionado ---
-
+// --- Singleton/Factory ---
 class ServicoMetodoGoogleSingleton {
     private static instancia: IServicoMetodoGoogle;
 
@@ -38,7 +53,14 @@ class ServicoMetodoGoogleSingleton {
 
     public static getInstancia(): IServicoMetodoGoogle {
         if (!ServicoMetodoGoogleSingleton.instancia) {
-            ServicoMetodoGoogleSingleton.instancia = servicoMetodoGoogle;
+            if (config.VITE_APP_ENV === 'simulation') {
+                console.log("INFO: [Servico.Metodo.Google] Usando MODO DE SIMULAÇÃO.");
+                ServicoMetodoGoogleSingleton.instancia = new ServicoGoogleAuthSimulado();
+            } else {
+                console.log("INFO: [Servico.Metodo.Google] Usando API REAL.");
+                // A API real deve ser compatível com a interface IServicoMetodoGoogle.
+                ServicoMetodoGoogleSingleton.instancia = APIGoogle;
+            }
         }
         return ServicoMetodoGoogleSingleton.instancia;
     }

@@ -1,81 +1,46 @@
 
-import { Usuario } from "../../../types/Saida/Types.Estrutura.Usuario";
+import { UsuarioAutenticado } from '../../Contratos/Contrato.Autenticacao';
 
-// --- ESTADO DA SIMULAÇÃO ---
-
-// Mock para o perfil do usuário "próprio" (logado)
-const mockOwnProfile: any = {
-    id: 'uuid-proprio-simulado-123',
-    email: 'proprio@email.simulado.com',
-    password: 'password_simulada',
-    nome: 'Usuario Proprio Simulado',
-    apelido: 'proprio_simulado',
-    urlFoto: 'https://i.pravatar.cc/150?u=proprio',
-    bio: 'Este é o perfil simulado do usuário logado. Bem-vindo ao meu mundo no Flux!',
-    site: 'https://meu-site-pessoal.com',
-    perfilCompleto: true,
+// Esta é a estrutura de dados simulada para um usuário.
+const usuarioSimulado: UsuarioAutenticado = {
+    id: 'user-simulado-123',
+    nome: 'Usuário Simulado',
+    email: 'simulado@example.com',
+    apelido: 'Simulado',
+    bio: 'Este é um perfil de usuário simulado para testes de frontend.',
+    site: 'https://example-frontend.com',
+    urlFoto: 'https://i.pravatar.cc/150?u=frontend',
     privado: false,
-    seguidores: [],
-    seguindo: [],
-    dataCriacao: new Date(),
-    dataAtualizacao: new Date(),
+    // CORREÇÃO: Propriedade renomeada para corresponder ao que a `pages/Login.tsx` espera.
+    profile_completed: true, 
+    termosAceitos: true,
+    contagemSeguidores: 150,
+    contagemSeguindo: 75,
+    dataCriacao: new Date().toISOString(),
+    dataAtualizacao: new Date().toISOString(),
 };
 
-// Mock para um perfil "público" de outro usuário
-const mockPublicProfile: Usuario = {
-    id: 'uuid-publico-simulado-456',
-    email: 'publico@email.simulado.com',
-    nome: 'Usuario Publico Simulado',
-    apelido: 'publico_simulado',
-    urlFoto: 'https://i.pravatar.cc/150?u=publico',
-    bio: 'Apenas mais um usuário simulado navegando pelo Flux. Conecte-se comigo!',
-    site: 'https://blog-do-publico.com',
-    perfilCompleto: true,
-    privado: false,
-    seguidores: [],
-    seguindo: [],
-    dataCriacao: new Date(),
-    dataAtualizacao: new Date(),
-};
-
-
-// --- MOCK DO SERVIÇO ---
-
-/**
- * Mock do servicoPerfilUsuario que retorna dados simulados sem fazer chamadas de rede.
- * Simula a interface do serviço real para ser usado em ambientes de desenvolvimento.
- */
+// Mock para o serviço de perfil de usuário.
 export const mockServicoPerfilUsuario = {
-    /**
-     * Simula a busca do perfil do usuário autenticado.
-     */
-    getOwnProfile: async (): Promise<Usuario | null> => {
-        console.log("SIMULAÇÃO: Chamando getOwnProfile");
-        // Simula uma pequena latência de rede
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return mockOwnProfile;
-    },
+  async getOwnProfile(): Promise<UsuarioAutenticado> {
+    console.log("SIMULAÇÃO: Obtendo perfil próprio simulado.");
+    return Promise.resolve(usuarioSimulado);
+  },
 
-    /**
-     * Simula a busca de um perfil público de outro usuário.
-     */
-    getPublicProfileByUsername: async (username: string): Promise<Usuario | null> => {
-        console.log(`SIMULAÇÃO: Chamando getPublicProfileByUsername para ${username}`);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        // Retorna o perfil público mockado, independente do username, para fins de simulação
-        return mockPublicProfile;
-    },
+  async getPublicProfileByUsername(username: string): Promise<UsuarioAutenticado> {
+    console.log(`SIMULAÇÃO: Obtendo perfil público simulado para ${username}.`);
+    return Promise.resolve({
+        ...usuarioSimulado,
+        id: `user-simulado-${username}`,
+        nome: username,
+        email: `${username}@example.com`,
+        apelido: username,
+    });
+  },
 
-    /**
-     * Simula a atualização de um perfil.
-     */
-    updateProfile: async (userId: string, profileData: Partial<Usuario>): Promise<Usuario | null> => {
-        console.log(`SIMULAÇÃO: Chamando updateProfile para userId ${userId} com dados:`, profileData);
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Em uma simulação real, você poderia atualizar o objeto mockOwnProfile
-        Object.assign(mockOwnProfile, profileData);
-
-        return mockOwnProfile;
-    },
+  async updateProfile(userId: string, profileData: Partial<UsuarioAutenticado>): Promise<UsuarioAutenticado> {
+    console.log(`SIMULAÇÃO: Atualizando perfil simulado para ${userId}.`);
+    const perfilAtualizado = { ...usuarioSimulado, ...profileData };
+    return Promise.resolve(perfilAtualizado);
+  },
 };
