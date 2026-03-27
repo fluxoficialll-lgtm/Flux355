@@ -2,6 +2,9 @@
 import { Notificacao } from '../../types/Saida/Types.Estrutura.Notificacao';
 import { servicoAutenticacao } from '../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
 import servicoNotificacao from '../ServicoNotificacao/Servico.Notificacao';
+import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
+
+const logger = createApplicationServiceLogger('NotificacoesApplicationService');
 
 interface NotificacoesState {
   notificacoes: Notificacao[];
@@ -30,9 +33,12 @@ class NotificacoesApplicationService {
   }
 
   public async carregarNotificacoes() {
+    logger.logOperationStart('carregarNotificacoes');
     const token = servicoAutenticacao.getCurrentUser()?.token;
     if (!token) {
-        this.updateState({ loading: false, error: "Usuário não autenticado." });
+        const error = new Error("Usuário não autenticado.");
+        logger.logOperationError('carregarNotificacoes', error, { reason: 'token_ausente' })
+        this.updateState({ loading: false, error: error.message });
         return
     }
 
@@ -41,8 +47,9 @@ class NotificacoesApplicationService {
     try {
       const notificacoes = await servicoNotificacao.getNotifications(token);
       this.updateState({ notificacoes, loading: false });
+      logger.logOperationSuccess('carregarNotificacoes', { notificationCount: notificacoes.length });
     } catch (err: any) {
-      console.error("NotificacoesApplicationService: Falha ao carregar notificações:", err);
+      logger.logOperationError('carregarNotificacoes', err);
       this.updateState({ error: err.message, loading: false, notificacoes: [] });
     }
   }

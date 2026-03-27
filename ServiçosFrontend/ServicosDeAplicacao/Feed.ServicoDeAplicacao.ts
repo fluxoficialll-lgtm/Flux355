@@ -1,6 +1,9 @@
 
 import { PublicacaoFeed } from '../../types/Saida/Types.Estrutura.Publicacao.Feed';
 import { feedPublicationService } from '../ServiçosDePublicações/Servico.Publicacao.Feed';
+import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
+
+const logger = createApplicationServiceLogger('FeedApplicationService');
 
 interface FeedState {
   posts: PublicacaoFeed[];
@@ -20,13 +23,16 @@ class FeedApplicationService {
   public async carregarPosts() {
     if (this.state.loading) return;
 
+    logger.logOperationStart('carregarPosts');
     this.updateState({ loading: true, error: null });
 
     try {
       const posts = await feedPublicationService.getPosts();
       this.updateState({ posts, loading: false });
+      logger.logOperationSuccess('carregarPosts', { postCount: posts.length });
     } catch (err: any) {
       this.updateState({ error: err.message, loading: false });
+      logger.logOperationError('carregarPosts', err);
     }
   }
 

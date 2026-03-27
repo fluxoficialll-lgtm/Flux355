@@ -1,9 +1,9 @@
 
 import { servicoAutenticacao } from '../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
+import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
 import { ILoginEmailParams } from '../Contratos/Contrato.Autenticacao';
 
-const appServiceLogger = createServiceLogger('Autenticacao.ServicoDeAplicacao');
+const appServiceLogger = createApplicationServiceLogger('Autenticacao.ServicoDeAplicacao');
 
 const loginComEmail = async (params: ILoginEmailParams) => {
     const { email, senha } = params;
