@@ -1,52 +1,56 @@
-
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getInstanciaSuprema } from '../ServiçosFrontend/ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-const authService = getInstanciaSuprema();
+import { useSessao } from './useSessao';
 import { createHookLogger } from '../ServiçosFrontend/SistemaObservabilidade/Log.Hook';
 
-const hookLogger = createHookLogger('useLoginGoogle');
+const log = createHookLogger('useLoginGoogle');
 
+/**
+ * Hook para gerenciar o processo de login com Google.
+ * Encapsula a lógica de autenticação, feedback de UI (loading/error) e redirecionamento,
+ * tratando corretamente os casos de usuários novos ou com perfil incompleto.
+ */
 export const useLoginGoogle = () => {
-    const [processando, setProcessando] = useState(false);
-    const [erro, setErro] = useState('');
+    const [carregando, setCarregando] = useState(false);
+    const [erro, setErro] = useState<string | null>(null);
+    const { login } = useSessao();
     const navigate = useNavigate();
+    const SistemaAutenticacao = getInstanciaSuprema();
 
-    const loginComGoogle = useCallback(async (credentialResponse: any) => {
-        hookLogger.logStart('loginComGoogle', { hasCredential: !!credentialResponse?.credential });
-
-        if (!credentialResponse || !credentialResponse.credential) {
-            const errorMessage = "A credencial do Google fornecida é inválida ou nula.";
-            hookLogger.logError('loginComGoogle', new Error(errorMessage), { reason: 'validacao_credencial' });
-            setErro(errorMessage);
-            return;
-        }
-
-        setProcessando(true);
-        setErro('');
+    /**
+     * Inicia o fluxo de login com Google.
+     * Em caso de sucesso, atualiza a sessão e redireciona o usuário para a tela apropriada
+     * com base no status do seu perfil.
+     */
+    const loginComGoogle = async () => {
+        setCarregando(true);
+        setErro(null);
+        log.logStart('loginComGoogle');
 
         try {
-            const response = await authService.resolverSessaoLogin({ code: credentialResponse.credential, referredBy: undefined });
-            hookLogger.logSuccess('loginComGoogle');
+            // @ts-ignore: Acessando método que pode não estar na interface, mas existe na implementação.
+            const { token, usuario } = await SistemaAutenticacao.loginComGoogle();
+            
+            log.logSuccess('loginComGoogle', { userId: usuario.id });
 
-            if (response.isNewUser) {
-                navigate("/completar-perfil");
+            login(usuario, token);
+
+            if (usuario && usuario.perfilCompleto) {
+                log.logStart('redirecionamento', { to: '/feed', userId: usuario.id });
+                navigate('/feed');
             } else {
-                navigate("/feed");
+                log.logStart('redirecionamento', { to: '/completar-perfil', userId: usuario.id });
+                navigate('/completar-perfil');
             }
 
         } catch (err: any) {
-            hookLogger.logError('loginComGoogle', err);
-            setErro(err.message || 'Falha no login com Google.');
+            log.logError('loginComGoogle', err, { message: err.message });
+            setErro(err.message || 'Ocorreu um erro desconhecido durante o login.');
         } finally {
-            setProcessando(false);
+            setCarregando(false);
         }
-    }, [navigate]);
-
-    return {
-        processandoLoginGoogle: processando,
-        erroLoginGoogle: erro,
-        setErroLoginGoogle: setErro,
-        loginComGoogle,
     };
+
+    return { loginComGoogle, carregando, erro };
 };
