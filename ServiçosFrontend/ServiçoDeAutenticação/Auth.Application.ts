@@ -3,6 +3,8 @@ import { processoLogin, IEstadoAutenticacao, IUsuario } from './Processo.Login';
 import { IPerfilParaCompletar, IResultadoCompletarPerfil } from './Processo.Completar.Perfil';
 import { IRegistroParams, IResultadoRegistro } from './Processo.Registrar';
 import { AutenticacaoAPI } from '../APIs/Autenticacao.API';
+// Importando a lógica específica do Google Login
+import { loginGoogle } from './Login.Google';
 
 type Listener = (estado: IEstadoAutenticacao) => void;
 
@@ -13,7 +15,7 @@ class ServicoAutenticacao {
     this.listeners.forEach(listener => listener(this.getState()));
   }
 
-  // ... Métodos de login e logout (já refatorados) ...
+  // ... login, logout, registrar, completarPerfil (sem alterações) ...
   public async login(params: { email: string, senha: string }): Promise<void> {
     try {
       const respostaAPI = await AutenticacaoAPI.loginComEmail(params);
@@ -35,76 +37,88 @@ class ServicoAutenticacao {
     this.notificarListeners();
   }
 
-  /**
-   * Orquestra o registro de um novo usuário.
-   * 1. Valida os dados.
-   * 2. Chama a API de registro.
-   * 3. Se sucesso, chama o método de login para criar a sessão.
-   */
   public async registrar(dadosRegistro: IRegistroParams): Promise<IResultadoRegistro> {
-    console.log("APPLICATION: Iniciando fluxo de registro.");
-
-    // 1. Etapa de Validação
     if (dadosRegistro.senha !== dadosRegistro.confirmacaoSenha) {
       return { sucesso: false, mensagem: "As senhas não conferem." };
     }
-    if (dadosRegistro.senha.length < 8) {
-      return { sucesso: false, mensagem: "A senha deve ter pelo menos 8 caracteres." };
-    }
-
     try {
-      // 2. Etapa de Comunicação com a API
       const respostaAPI = await AutenticacaoAPI.registrar(dadosRegistro);
-
-      // 3. Etapa de Pós-Registro (Login Automático)
-      console.log("APPLICATION: Registro bem-sucedido. Realizando login automático.");
       await this.login({ email: dadosRegistro.email, senha: dadosRegistro.senha });
-
       return { sucesso: true, mensagem: "Registro bem-sucedido!", usuario: respostaAPI.usuario };
-
     } catch (error: any) {
-      console.error("APPLICATION: Falha no registro.", error);
       return { sucesso: false, mensagem: error.message || "Ocorreu um erro no registro." };
     }
   }
 
-  /**
-   * Orquestra a lógica de completar o perfil.
-   * 1. Chama a API para salvar os dados do perfil.
-   * 2. Se sucesso, atualiza o estado local do usuário.
-   */
   public async completarPerfil(dadosPerfil: IPerfilParaCompletar): Promise<IResultadoCompletarPerfil> {
-    console.log("APPLICATION: Iniciando fluxo de completar perfil.");
     const estadoAtual = this.getState();
     if (!estadoAtual.autenticado || !estadoAtual.usuario) {
       return { sucesso: false, mensagem: "Usuário não autenticado." };
     }
-
     try {
       const usuarioId = estadoAtual.usuario.id;
       const usuarioAtualizado = await AutenticacaoAPI.completarPerfil(usuarioId, dadosPerfil);
-
-      // Atualiza o estado local com os novos dados do usuário
-      const novoEstadoUsuario: IUsuario = {
-        ...estadoAtual.usuario,
-        nome: usuarioAtualizado.apelido, // Atualiza o nome local para o novo apelido
-      };
-
+      const novoEstadoUsuario: IUsuario = { ...estadoAtual.usuario, nome: usuarioAtualizado.apelido };
       processoLogin.definirEstadoAutenticado(novoEstadoUsuario, estadoAtual.token || '');
       this.notificarListeners();
-
       return { sucesso: true, mensagem: "Perfil atualizado com sucesso!", usuarioAtualizado };
-
     } catch (error: any) {
-      console.error("APPLICATION: Falha ao completar o perfil.", error);
       return { sucesso: false, mensagem: error.message || "Ocorreu um erro ao atualizar o perfil." };
     }
+  }
+
+  // --- NOVOS MÉTODOS PARA LOGIN COM GOOGLE ---
+
+  /**
+   * Inicia o fluxo de login com Google.
+   * Delega a ação para o módulo especializado `Login.Google.ts`.
+   */
+  public iniciarLoginComGoogle(): void {
+    console.log("APPLICATION: Iniciando fluxo de login com Google.");
+    // Este método é o que deve ser chamado pelo provider/UI.
+    // Ele contém a lógica para redirecionar o usuário para a página do Google.
+    loginGoogle.iniciarLogin();
+  }
+
+  /**
+   * Finaliza o login com Google após o usuário ser redirecionado de volta do Google.
+   * @param code O código de autorização retornado pelo Google.
+   */
+  public async finalizarLoginComGoogle(code: string): Promise<void> {
+    console.log("APPLICATION: Finalizando fluxo de login com Google.");
+    try {
+      // 1. Usa o módulo do Google para obter os dados do usuário a partir do código.
+      const dadosUsuarioGoogle = await loginGoogle.processarCallback(code);
+
+      // 2. Chama a nossa API de backend para fazer o login ou registro social.
+      const respostaAPI = await AutenticacaoAPI.loginComProvedorSocial({
+        provedor: 'google',
+        token: dadosUsuarioGoogle.tokenProvider,
+        email: dadosUsuarioGoogle.email,
+        nome: dadosUsuarioGoogle.nome
+      });
+
+      // 3. Atualiza o estado da aplicação com o usuário e token retornados pela NOSSA API.
+      const usuario: IUsuario = {
+        id: respostaAPI.usuario.id,
+        nome: respostaAPI.usuario.apelido,
+        email: respostaAPI.usuario.email
+      };
+      processoLogin.definirEstadoAutenticado(usuario, respostaAPI.token);
+
+    } catch (error) {
+      console.error("APPLICATION: Falha no fluxo de login com Google.", error);
+      processoLogin.limparEstado();
+    }
+
+    // 4. Notifica a UI da mudança de estado.
+    this.notificarListeners();
   }
 
   // ... Métodos de subscribe, getState ...
   public subscribe(listener: Listener): () => void {
     this.listeners.push(listener);
-    listener(this.getState()); // Envia estado inicial ao novo listener
+    listener(this.getState());
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
     };

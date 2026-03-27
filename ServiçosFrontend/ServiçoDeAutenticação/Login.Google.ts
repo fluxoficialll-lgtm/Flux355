@@ -1,4 +1,6 @@
 
+import VariaveisFrontend from '../Config/Variaveis.Frontend.js';
+
 // Interface para o retorno padronizado dos dados do usuário de um provedor social.
 export interface IUsuarioSocial {
   id: string;
@@ -18,12 +20,34 @@ class LoginGoogle {
   }
 
   /**
-   * Inicia o fluxo de autenticação, redirecionando o usuário para o Google.
+   * Inicia o fluxo de autenticação, construindo a URL correta e redirecionando o usuário para o Google.
    */
   public iniciarLogin(): void {
+    const googleClientId = VariaveisFrontend.googleClientId;
+
+    if (!googleClientId || googleClientId === 'CHAVE_NAO_DEFINIDA') {
+      console.error("Google Login: A 'googleClientId' não está configurada. Verifique o arquivo .env e a variável VITE_GOOGLE_CLIENT_ID.");
+      alert("A autenticação com Google não está configurada corretamente.");
+      return;
+    }
+
     console.log("Google Login: Redirecionando para a tela de login do Google...");
-    // Lógica futura: Construir a URL de autorização do Google com client_id, redirect_uri, scope, etc.
-    // e então executar o redirecionamento: window.location.href = url;
+
+    // A URI de redirecionamento que deve estar cadastrada no seu painel do Google Cloud.
+    const redirectUri = `${window.location.origin}/auth/google/callback`;
+    
+    const scope = 'openid profile email';
+
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.append('client_id', googleClientId);
+    authUrl.searchParams.append('redirect_uri', redirectUri);
+    authUrl.searchParams.append('response_type', 'code');
+    authUrl.searchParams.append('scope', scope);
+    authUrl.searchParams.append('access_type', 'offline');
+    authUrl.searchParams.append('prompt', 'consent');
+
+    // Executa o redirecionamento para a página de login do Google.
+    window.location.href = authUrl.toString();
   }
 
   /**
@@ -34,16 +58,14 @@ class LoginGoogle {
   public async processarCallback(codigo: string): Promise<IUsuarioSocial> {
     console.log(`Google Login: Processando código de callback recebido: ${codigo}`);
     
-    // Lógica futura:
-    // 1. Fazer uma requisição segura (backend para backend) ao Google para trocar o `codigo` por um `access_token`.
-    // 2. Com o `access_token`, buscar os dados do perfil do usuário na API do Google.
-
-    // Por enquanto, vamos simular o retorno com dados de um usuário fictício para não travar o desenvolvimento.
+    // Em um cenário real, você faria uma chamada ao seu backend aqui,
+    // enviando o 'codigo' para que o backend o troque por um token de acesso junto ao Google.
+    // Por enquanto, a simulação permanece para não quebrar outras partes do fluxo.
     const usuarioSimulado: IUsuarioSocial = {
       id: `google_${new Date().getTime()}`,
       nome: "Usuário Simulado do Google",
       email: "usuario.google.simulado@example.com",
-      tokenProvider: "token-super-secreto-do-google-que-veio-do-callback",
+      tokenProvider: codigo, // Usando o código como token simulado
     };
 
     console.log("Google Login: Dados do usuário simulado foram gerados.");
@@ -51,5 +73,5 @@ class LoginGoogle {
   }
 }
 
-// Exportamos uma instância única (singleton) da classe para ser usada em outras partes da aplicação, como no Processo.Login.
+// Exportamos uma instância única (singleton) da classe.
 export const loginGoogle = new LoginGoogle();
