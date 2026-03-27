@@ -25,11 +25,10 @@ class AuthApplicationService implements IAutenticacaoServico {
     this.session = new AuthSession();
     this.loginService = new AuthLogin();
     this.accountService = new AuthAccount();
-    this.init();
-    log.logInfo('Serviço de Aplicação de Autenticação inicializado.');
+    log.logInfo('Serviço de Aplicação de Autenticação instanciado.');
   }
 
-  private async init() {
+  public async initialize() {
     try {
       const user = this.session.getCurrentUser();
       const isNewUserStored = sessionStorage.getItem('flux_is_new_user');
@@ -132,8 +131,8 @@ class AuthApplicationService implements IAutenticacaoServico {
     this.stateManager.updateState({ user: null, isAuthenticated: false });
   }
 
-  getCurrentUser() {
-    return this.getState().user;
+  getCurrentUser(): any | null {
+    return this.stateManager.getState().user;
   }
 
   getToken(): string | null {
@@ -142,7 +141,7 @@ class AuthApplicationService implements IAutenticacaoServico {
   
   async getPublicProfileByUsername(username: string): Promise<PerfilUsuario | null> {
     return this.accountService.getPublicProfileByUsername(username);
-  }
+a  }
 
   async verifyCode(email: string, code: string, isReset: boolean = false): Promise<void> {
     return this.accountService.verifyCode(email, code, isReset);
