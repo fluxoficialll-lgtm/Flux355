@@ -9,11 +9,10 @@ import { IPerfilParaCompletar } from '../ServiçoDeAutenticação/Processo.Compl
 /**
  * @file Autenticacao.API.ts
  * @description Módulo centralizado para todas as chamadas de API relacionadas à autenticação.
- * 
- * Este módulo encapsula a comunicação com os endpoints do backend para registro,
- * login, logout, etc. Ele utiliza o cliente HTTP genérico (clienteBackend).
  */
 export const AutenticacaoAPI = {
+
+  // ... outros métodos (loginComEmail, registrar, etc.) ...
 
   /**
    * Envia as credenciais de email e senha para o endpoint de login da API.
@@ -74,10 +73,31 @@ export const AutenticacaoAPI = {
       ...dadosPerfil,
     };
     // --- Fim da Simulação ---
-  }
+  },
 
-  // Outras chamadas de API relacionadas à autenticação poderiam ser adicionadas aqui:
-  // - logout(token)
-  // - solicitarRedefinicaoSenha(email)
-  // - trocarTokenSocial(tokenDoGoogle)
+  /**
+   * Valida um token de provedor social (ex: Google) com o backend e obtém um token de sessão (JWT).
+   * @param params Dados do login social.
+   */
+  loginComProvedorSocial: async (params: { provedor: string, token: string, email: string, nome: string }): Promise<any> => {
+    console.log("API: Enviando requisição de login social para o backend", params);
+    // Em um cenário real, a chamada seria assim:
+    // const { data } = await clienteBackend.post('/auth/social-login', params);
+    // return data;
+
+    // --- Início da Simulação ---
+    // Simula que o backend validou o token do Google e retornou um usuário e um token JWT.
+    // O backend pode decidir se precisa que o usuário complete o perfil.
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return {
+      token: "jwt.token.simulado.social",
+      usuario: { 
+        id: `usr_social_${new Date().getTime()}`, 
+        email: params.email, 
+        apelido: params.nome, 
+        precisaCompletarPerfil: true // Força o fluxo de completar perfil para testes
+      }
+    };
+    // --- Fim da Simulação ---
+  }
 };
