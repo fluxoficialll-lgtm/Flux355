@@ -1,8 +1,11 @@
 
 import { IUsuario } from './Processo.Login';
+import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 const AUTH_USER_KEY = 'auth_user';
+
+const logger = createServiceLogger('AuthStorage');
 
 /**
  * @file Auth.Storage.ts
@@ -16,12 +19,13 @@ export const AuthStorage = {
    * @param usuario O objeto do usuário.
    */
   salvarSessao(token: string, usuario: IUsuario): void {
+    const operation = 'salvarSessao';
     try {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(usuario));
-      console.log("STORAGE: Sessão salva no localStorage.");
+      logger.logInfo("Sessão salva no localStorage.", { token, usuario });
     } catch (error) {
-      console.error("STORAGE: Erro ao salvar a sessão no localStorage.", error);
+      logger.logOperationError(operation, error, { token, usuario });
     }
   },
 
@@ -30,20 +34,21 @@ export const AuthStorage = {
    * @returns Um objeto com token e usuário, ou null se não houver dados.
    */
   carregarSessao(): { token: string; usuario: IUsuario } | null {
+    const operation = 'carregarSessao';
     try {
       const token = localStorage.getItem(AUTH_TOKEN_KEY);
       const usuarioString = localStorage.getItem(AUTH_USER_KEY);
 
       if (token && usuarioString) {
         const usuario: IUsuario = JSON.parse(usuarioString);
-        console.log("STORAGE: Sessão carregada do localStorage.", { token, usuario });
+        logger.logInfo("Sessão carregada do localStorage.", { token, usuario });
         return { token, usuario };
       }
 
-      console.log("STORAGE: Nenhuma sessão encontrada no localStorage.");
+      logger.logInfo("Nenhuma sessão encontrada no localStorage.");
       return null;
     } catch (error) {
-      console.error("STORAGE: Erro ao carregar a sessão do localStorage.", error);
+      logger.logOperationError(operation, error);
       // Limpa dados potencialmente corrompidos
       this.limparSessao();
       return null;
@@ -54,12 +59,13 @@ export const AuthStorage = {
    * Remove o token e os dados do usuário do localStorage.
    */
   limparSessao(): void {
+    const operation = 'limparSessao';
     try {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(AUTH_USER_KEY);
-      console.log("STORAGE: Sessão removida do localStorage.");
+      logger.logInfo("Sessão removida do localStorage.");
     } catch (error) {
-      console.error("STORAGE: Erro ao remover a sessão do localStorage.", error);
+      logger.logOperationError(operation, error);
     }
   }
 };
