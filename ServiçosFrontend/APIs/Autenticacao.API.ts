@@ -3,7 +3,6 @@ import clienteBackend from '../Cliente.Backend.js';
 import { ILoginEmailParams } from '../Contratos/Contrato.Autenticacao';
 import { IRegistroParams } from '../ServiçoDeAutenticação/Processo.Registrar';
 import { IPerfilParaCompletar } from '../ServiçoDeAutenticação/Processo.Completar.Perfil';
-import { ENDPOINTS_AUTH } from '../EndPoints/EndPoints.Auth';
 import { createApiLogger } from '../SistemaObservabilidade/Log.API';
 
 const logger = createApiLogger('AutenticacaoAPI');
@@ -14,7 +13,7 @@ export const AutenticacaoAPI = {
     const method = 'loginComEmail';
     logger.logRequest(method, params);
     try {
-      const response = await clienteBackend.post(ENDPOINTS_AUTH.LOGIN, params);
+      const response = await clienteBackend.post(clienteBackend.Endpoints.Auth.LOGIN, params);
       logger.logSuccess(method, response);
       return response;
     } catch (error) {
@@ -27,7 +26,7 @@ export const AutenticacaoAPI = {
     const method = 'registrar';
     logger.logRequest(method, params);
     try {
-      const response = await clienteBackend.post(ENDPOINTS_AUTH.REGISTER, params);
+      const response = await clienteBackend.post(clienteBackend.Endpoints.Auth.REGISTER, params);
       logger.logSuccess(method, response);
       return response;
     } catch (error) {
@@ -41,7 +40,7 @@ export const AutenticacaoAPI = {
     const requestData = { usuarioId, ...dadosPerfil };
     logger.logRequest(method, requestData);
     try {
-      const response = await clienteBackend.post(ENDPOINTS_AUTH.ME, requestData);
+      const response = await clienteBackend.post(clienteBackend.Endpoints.Auth.ME, requestData);
       logger.logSuccess(method, response);
       return response;
     } catch (error) {
@@ -54,7 +53,7 @@ export const AutenticacaoAPI = {
     const method = 'loginComProvedorSocial';
     logger.logRequest(method, params);
     try {
-      const response = await clienteBackend.post(ENDPOINTS_AUTH.GOOGLE, params);
+      const response = await clienteBackend.post(clienteBackend.Endpoints.Auth.GOOGLE, params);
       logger.logSuccess(method, response);
       return response;
     } catch (error) {

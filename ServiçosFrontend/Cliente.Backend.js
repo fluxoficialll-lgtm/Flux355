@@ -2,12 +2,10 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import VariaveisFrontend from './Config/Variaveis.Frontend.js';
 import LogClienteBackend from './SistemaObservabilidade/Log.ClienteBackend.ts';
+import { ENDPOINTS_AUTH } from './EndPoints/EndPoints.Auth.ts';
+import { ENDPOINTS_CONVERSAS } from './EndPoints/EndPoints.Conversas.ts';
+import { ENDPOINTS_GRUPOS } from './EndPoints/EndPoints.Grupos.ts';
 
-/**
- * Calcula a duração em milissegundos.
- * @param {number} start - O tempo de início registrado.
- * @returns {number} A duração em milissegundos.
- */
 function getDurationInMilliseconds(start) {
   if (!start) return 0;
   return performance.now() - start;
@@ -29,7 +27,6 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// --- INTERCEPTOR DE REQUISIÇÃO ---
 ClienteBackend.interceptors.request.use(
     (config) => {
         config.headers['x-trace-id'] = config.headers['x-trace-id'] || uuidv4();
@@ -50,7 +47,6 @@ ClienteBackend.interceptors.request.use(
     }
 );
 
-// --- INTERCEPTOR DE RESPOSTA ---
 ClienteBackend.interceptors.response.use(
     (response) => {
         const duration = getDurationInMilliseconds(response.config.startTime);
@@ -61,7 +57,6 @@ ClienteBackend.interceptors.response.use(
         const originalRequest = error.config;
         LogClienteBackend.logError(error);
 
-        // Lógica de renovação de token (preservada)
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
@@ -103,5 +98,11 @@ ClienteBackend.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+ClienteBackend.Endpoints = {
+    Auth: ENDPOINTS_AUTH,
+    Conversas: ENDPOINTS_CONVERSAS,
+    Grupos: ENDPOINTS_GRUPOS
+};
 
 export default ClienteBackend;
