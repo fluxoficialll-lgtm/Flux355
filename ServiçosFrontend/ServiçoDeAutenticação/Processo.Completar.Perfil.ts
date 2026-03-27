@@ -1,32 +1,39 @@
 
-// Interface para os dados que o usuário precisa fornecer para completar o perfil.
-export interface IPerfilParaCompletar {
-  apelido: string;
-  dataNascimento?: string;
-  biografia?: string;
-  telefone?: string;
-}
+import { IPerfilParaCompletar, IResultadoCompletarPerfil } from './Processo.Completar.Perfil';
+import ClienteBackend from '../Cliente.Backend.js'; 
+import { ENDPOINTS_AUTH } from '../EndPoints/EndPoints.Auth';
 
-// Interface para o resultado da operação de completar o perfil.
-export interface IResultadoCompletarPerfil {
-  sucesso: boolean;
-  mensagem: string;
-  usuarioAtualizado?: any;
-}
-
-/**
- * Processo.Completar.Perfil.ts (Refatorado)
- * 
- * Na nova arquitetura, a chamada de API e a lógica são orquestradas
- * pela camada de Aplicação. Este arquivo é mantido para consistência estrutural.
- */
 class ProcessoCompletarPerfil {
-
-  constructor() {
-    // console.log("Processo de Completar Perfil instanciado (sem lógica interna).");
+  
+  async executar(perfilData: IPerfilParaCompletar): Promise<IResultadoCompletarPerfil> {
+    try {
+      // Corrigido para usar ENDPOINTS_AUTH.PROFILE, que é o endpoint correto para atualizar o perfil
+      const response = await ClienteBackend.post(ENDPOINTS_AUTH.PROFILE, perfilData);
+      
+      if (response.status === 200) {
+        return {
+          sucesso: true,
+          mensagem: "Perfil completado com sucesso!",
+          usuarioAtualizado: response.data,
+        };
+      } else {
+        const mensagemErro = response.data.message || "Ocorreu um erro desconhecido no servidor.";
+        return {
+          sucesso: false,
+          mensagem: mensagemErro,
+        };
+      }
+    } catch (error: any) {
+      console.error("Erro ao completar o perfil:", error);
+      
+      const mensagemErroApi = error.response?.data?.message || "Não foi possível conectar ao servidor. Tente novamente mais tarde.";
+      
+      return {
+        sucesso: false,
+        mensagem: mensagemErroApi,
+      };
+    }
   }
-
-  // A função executar foi movida para a camada de Aplicação.
 }
 
 export const processoCompletarPerfil = new ProcessoCompletarPerfil();

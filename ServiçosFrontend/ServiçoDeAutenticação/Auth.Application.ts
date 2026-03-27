@@ -1,6 +1,6 @@
 
 import { processoLogin, IEstadoAutenticacao, IUsuario } from './Processo.Login';
-import { IPerfilParaCompletar, IResultadoCompletarPerfil } from './Processo.Completar.Perfil';
+import { IPerfilParaCompletar, IResultadoCompletarPerfil, processoCompletarPerfil } from './Processo.Completar.Perfil';
 import { IRegistroParams, IResultadoRegistro } from './Processo.Registrar';
 import { AutenticacaoAPI } from '../APIs/Autenticacao.API';
 import { loginGoogle } from './Login.Google';
@@ -67,23 +67,29 @@ class ServicoAutenticacao {
     const operation = 'completarPerfil';
     logger.logOperationStart(operation, dadosPerfil);
     const estadoAtual = this.getState();
+
     if (!estadoAtual.autenticado || !estadoAtual.usuario) {
         const error = new Error("Usuário não autenticado.");
         logger.logOperationError(operation, error);
-      return { sucesso: false, mensagem: error.message };
+        return { sucesso: false, mensagem: error.message };
     }
-    try {
-      const usuarioId = estadoAtual.usuario.id;
-      const usuarioAtualizado = await AutenticacaoAPI.completarPerfil(usuarioId, dadosPerfil);
-      const novoEstadoUsuario: IUsuario = { ...estadoAtual.usuario, nome: usuarioAtualizado.apelido };
-      processoLogin.definirEstadoAutenticado(novoEstadoUsuario, estadoAtual.token || '');
-      this.notificarListeners();
-      logger.logOperationSuccess(operation, { usuarioAtualizado });
-      return { sucesso: true, mensagem: "Perfil atualizado com sucesso!", usuarioAtualizado };
-    } catch (error: any) {
-      logger.logOperationError(operation, error, dadosPerfil);
-      return { sucesso: false, mensagem: error.message || "Ocorreu um erro ao atualizar o perfil." };
+
+    // Delega a lógica para o ProcessoCompletarPerfil
+    const resultado = await processoCompletarPerfil.executar(dadosPerfil);
+
+    if (resultado.sucesso && resultado.usuarioAtualizado) {
+        const { usuarioAtualizado } = resultado;
+        const novoEstadoUsuario: IUsuario = { ...estadoAtual.usuario, nome: usuarioAtualizado.apelido };
+        
+        // Atualiza o estado de autenticação local
+        processoLogin.definirEstadoAutenticado(novoEstadoUsuario, estadoAtual.token || '');
+        this.notificarListeners();
+        logger.logOperationSuccess(operation, { usuarioAtualizado });
+    } else {
+        logger.logOperationError(operation, new Error(resultado.mensagem), dadosPerfil);
     }
+
+    return resultado;
   }
 
   public iniciarLoginComGoogle(): void {
