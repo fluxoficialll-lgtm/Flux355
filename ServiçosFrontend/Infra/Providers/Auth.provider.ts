@@ -1,10 +1,12 @@
 
 import { servicoAutenticacao, AuthState } from '../../ServiçoDeAutenticação/Sistema.Autenticacao.Supremo';
-import ServicoMetodoGoogle from '../../APIs/APIsServicoAutenticacao/API.Servico.Metodo.Google';
+import { getInstancia as getGoogleLoginInstancia } from '../../ServiçoDeAutenticação/Login.Google';
 import { ILoginEmailParams } from '../../Contratos/Contrato.Autenticacao';
 
 // Re-exporta os tipos para que a camada de aplicação não precise conhecer os serviços subjacentes.
 export type { AuthState, ILoginEmailParams };
+
+const ServicoMetodoGoogle = getGoogleLoginInstancia();
 
 /**
  * AuthProvider fornece uma interface completa e reativa para as operações de autenticação.
