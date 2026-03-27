@@ -15,6 +15,7 @@ interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  isNewUser?: boolean;
 }
 
 class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
@@ -28,6 +29,7 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
     isAuthenticated: false,
     loading: true,
     error: null,
+    isNewUser: false,
   };
 
   private listeners: ((state: AuthState) => void)[] = [];
@@ -44,7 +46,7 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   private async init() {
     try {
       const user = await this.gestaoSessao.getCurrentUser();
-      this.updateState({ user, isAuthenticated: !!user, loading: false });
+      this.updateState({ user, isAuthenticated: !!user, loading: false, isNewUser: false });
     } catch (error) {
       log.logError('Falha na inicialização da sessão', error);
       this.updateState({ user: null, isAuthenticated: false, loading: false, error: 'Falha ao verificar a sessão.' });
@@ -72,7 +74,7 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
     try {
       const { token, user } = await this.gestaoLogin.login(data);
       this.gestaoSessao.iniciarSessao(token, user);
-      this.updateState({ user, isAuthenticated: true, error: null });
+      this.updateState({ user, isAuthenticated: true, error: null, isNewUser: false });
       return { user };
     } catch (error) {
       log.logError('Falha no login', error);
@@ -89,7 +91,7 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
     try {
       const { token, user, isNewUser } = await this.gestaoLogin.handleGoogleCallback(data.code, data.referredBy);
       this.gestaoSessao.iniciarSessao(token, user);
-      this.updateState({ user, isAuthenticated: true, error: null });
+      this.updateState({ user, isAuthenticated: true, error: null, isNewUser });
       return { user, isNewUser };
     } catch (error) {
       log.logError('Falha no login com Google', error);
@@ -104,13 +106,13 @@ class SistemaAutenticacaoSupremo implements IAutenticacaoServico {
   
   async logout() {
     await this.gestaoSessao.encerrarSessao();
-    this.updateState({ user: null, isAuthenticated: false });
+    this.updateState({ user: null, isAuthenticated: false, isNewUser: false });
   }
 
   async criarConta(dados: CriacaoContaDto): Promise<void> {
     const { user, token } = await this.criacaoUsuario.criarConta(dados);
     this.gestaoSessao.iniciarSessao(token, user);
-    this.updateState({ user, isAuthenticated: true });
+    this.updateState({ user, isAuthenticated: true, isNewUser: true });
   }
 
   async completeProfile(data: any): Promise<void> {

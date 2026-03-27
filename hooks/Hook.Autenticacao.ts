@@ -9,19 +9,28 @@ export const useAutenticacao = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = servicoAutenticacao.subscribe(setAuthState);
+    const handleAuthStateChange = (newState) => {
+      setAuthState(newState);
+      if (newState.isAuthenticated) {
+        if (newState.isNewUser) {
+          navigate('/completar-perfil');
+        } else {
+          navigate('/feed');
+        }
+      }
+    };
+
+    const unsubscribe = servicoAutenticacao.subscribe(handleAuthStateChange);
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const loginComEmail = useCallback(async (credentials: LoginRequest) => {
     try {
       await servicoAutenticacao.login(credentials);
-      navigate('/feed');
     } catch (error) {
       console.error("Falha no login com email:", error);
-      // O estado de erro já é atualizado dentro do serviço
     }
-  }, [navigate]);
+  }, []);
 
   const iniciarLoginComGoogle = useCallback(() => {
     servicoAutenticacao.iniciarLoginComGoogle();
