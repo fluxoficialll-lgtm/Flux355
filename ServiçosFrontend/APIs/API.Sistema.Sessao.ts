@@ -1,7 +1,6 @@
 
 import ClienteBackend from '../Cliente.Backend.js';
 import {
-    IAutenticacaoServico,
     LoginRequest,
     LoginResponse,
     LoginRequestSchema, 
@@ -13,9 +12,9 @@ import { AxiosResponse } from 'axios';
 import { createApiLogger } from '../SistemaObservabilidade/Log.API';
 import { ENDPOINTS_AUTH } from '../EndPoints/EndPoints.Auth';
 
-const apiLogger = createApiLogger('AutenticacaoSupremo');
+const apiLogger = createApiLogger('SessaoAPI');
 
-class AutenticacaoAPISupremo implements IAutenticacaoServico {
+class SessaoAPI {
     
     async login(data: LoginRequest): Promise<LoginResponse> {
         apiLogger.logRequest('login', { email: data.email });
@@ -23,10 +22,10 @@ class AutenticacaoAPISupremo implements IAutenticacaoServico {
             const dadosValidados = LoginRequestSchema.parse(data);
             const response: AxiosResponse<any> = await ClienteBackend.post(ENDPOINTS_AUTH.LOGIN, dadosValidados);
             
-            const responseData = response.data.dados; // Extrai a propriedade 'dados'
+            const responseData = response.data.dados;
             const transformedData = {
                 ...responseData,
-                usuario: responseData.user, // Renomeia 'user' para 'usuario'
+                usuario: responseData.user,
             };
 
             apiLogger.logSuccess('login', transformedData);
@@ -42,11 +41,10 @@ class AutenticacaoAPISupremo implements IAutenticacaoServico {
         try {
             const response: AxiosResponse<any> = await ClienteBackend.post(ENDPOINTS_AUTH.GOOGLE_CALLBACK, data);
             
-            // Extrai e transforma os dados da resposta para corresponder ao esquema esperado.
-            const responseData = response.data.dados; // Extrai a propriedade 'dados'
+            const responseData = response.data.dados;
             const transformedData = {
                 token: responseData.token,
-                usuario: responseData.user,       // Renomeia 'user' para 'usuario'
+                usuario: responseData.user,
                 isNewUser: responseData.isNewUser
             };
 
@@ -62,4 +60,4 @@ class AutenticacaoAPISupremo implements IAutenticacaoServico {
     }
 }
 
-export default new AutenticacaoAPISupremo();
+export default new SessaoAPI();

@@ -1,7 +1,7 @@
 
 import { config } from '../ValidaçãoDeAmbiente/config';
 import { UsuarioAutenticado, LoginRequest } from '../../Contratos/Contrato.Autenticacao';
-import authApi from '../APIs/API.Sistema.Autenticacao.Supremo';
+import sessaoApi from '../APIs/API.Sistema.Sessao';
 import { mockServicoPerfilUsuario } from '../ServiçoDeSimulação/simulacoes/Simulacao.Perfil.Usuario';
 
 // A interface de resposta esperada pelo Servico.Gestao.Login
@@ -19,13 +19,11 @@ export interface IServicoEmailSenhaAuth {
 class ServicoEmailSenhaAuthReal implements IServicoEmailSenhaAuth {
     async autenticar(dadosLogin: LoginRequest): Promise<LoginResponse> {
         console.log("Real Email/Senha Auth: Iniciando autenticação...");
-        // A API real retorna a resposta dentro de `data`
-        const response = await authApi.login(dadosLogin.email, dadosLogin.password);
+        const response = await sessaoApi.login(dadosLogin);
         
-        if (response && response.data && response.data.token && response.data.user) {
+        if (response && response.token && response.usuario) {
             console.log("Real Email/Senha Auth: Autenticação bem-sucedida.");
-            // A API real usa 'user', não 'usuario'.
-            return { token: response.data.token, user: response.data.user };
+            return { token: response.token, user: response.usuario };
         }
 
         throw new Error('Resposta de login inválida do servidor.');
@@ -40,7 +38,6 @@ class ServicoEmailSenhaAuthSimulado implements IServicoEmailSenhaAuth {
         
         const user = await mockServicoPerfilUsuario.getOwnProfile();
         
-        // CORREÇÃO: O campo deve se chamar `user`, não `usuario`.
         const simulatedResponse: LoginResponse = {
             token: `simulated-email-jwt-token-for-${dadosLogin.email}`,
             user: user,
