@@ -2,7 +2,7 @@
 import { processoLogin, IEstadoAutenticacao, IUsuario } from './Processo.Login';
 import { IPerfilParaCompletar, IResultadoCompletarPerfil, processoCompletarPerfil } from './Processo.Completar.Perfil';
 import { IRegistroParams, IResultadoRegistro } from './Processo.Registrar';
-import { AutenticacaoAPI } from '../APIs/Autenticacao.API';
+import { infraProvider } from '../serviços/provedor/InfraProvider';
 import { loginGoogle } from './Login.Google';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 
@@ -21,7 +21,7 @@ class ServicoAutenticacao {
     const operation = 'login';
     logger.logOperationStart(operation, params);
     try {
-      const respostaAPI = await AutenticacaoAPI.loginComEmail(params);
+      const respostaAPI = (await infraProvider.post('/auth/login', params)).data;
       const usuario: IUsuario = {
         id: respostaAPI.usuario.id,
         nome: respostaAPI.usuario.apelido,
@@ -53,7 +53,7 @@ class ServicoAutenticacao {
         return { sucesso: false, mensagem: error.message };
     }
     try {
-      const respostaAPI = await AutenticacaoAPI.registrar(dadosRegistro);
+      const respostaAPI = (await infraProvider.post('/auth/registrar', dadosRegistro)).data;
       await this.login({ email: dadosRegistro.email, senha: dadosRegistro.senha });
       logger.logOperationSuccess(operation, { usuario: respostaAPI.usuario });
       return { sucesso: true, mensagem: "Registro bem-sucedido!", usuario: respostaAPI.usuario };
@@ -74,14 +74,12 @@ class ServicoAutenticacao {
         return { sucesso: false, mensagem: error.message };
     }
 
-    // Delega a lógica para o ProcessoCompletarPerfil
     const resultado = await processoCompletarPerfil.executar(dadosPerfil);
 
     if (resultado.sucesso && resultado.usuarioAtualizado) {
         const { usuarioAtualizado } = resultado;
         const novoEstadoUsuario: IUsuario = { ...estadoAtual.usuario, nome: usuarioAtualizado.apelido };
         
-        // Atualiza o estado de autenticação local
         processoLogin.definirEstadoAutenticado(novoEstadoUsuario, estadoAtual.token || '');
         this.notificarListeners();
         logger.logOperationSuccess(operation, { usuarioAtualizado });
@@ -103,12 +101,12 @@ class ServicoAutenticacao {
     logger.logOperationStart(operation, { code });
     try {
       const dadosUsuarioGoogle = await loginGoogle.processarCallback(code);
-      const respostaAPI = await AutenticacaoAPI.loginComProvedorSocial({
+      const respostaAPI = (await infraProvider.post('/auth/social-login', {
         provedor: 'google',
         token: dadosUsuarioGoogle.tokenProvider,
         email: dadosUsuarioGoogle.email,
         nome: dadosUsuarioGoogle.nome
-      });
+      })).data;
 
       const usuario: IUsuario = {
         id: respostaAPI.usuario.id,

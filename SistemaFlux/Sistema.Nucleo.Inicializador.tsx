@@ -5,12 +5,14 @@ import SistemaNucleoApp from './Sistema.Nucleo.App';
 import { loadEnvironment } from '../ServiçosFrontend/ValidaçãoDeAmbiente/config.ts';
 import AppFlux from './App.Flux';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthProvider } from '../ServiçosFrontend/serviços/provedor/AuthProvider.tsx'; // Importado
 import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Auth.Application.ts';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 async function inicializarAplicacao() {
-  await servicoAutenticacao.initialize();
+  // A inicialização do serviço de autenticação foi removida daqui
+  // pois será gerenciada pelo AuthProvider.
   montarNucleoReact();
 }
 
@@ -35,7 +37,10 @@ export function montarNucleoReact() {
   root.render(
     <React.StrictMode>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID!}>
-        <SistemaNucleoApp />
+        {/* AuthProvider agora envolve a aplicação */}
+        <AuthProvider>
+          <SistemaNucleoApp />
+        </AuthProvider>
       </GoogleOAuthProvider>
     </React.StrictMode>
   );

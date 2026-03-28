@@ -1,34 +1,32 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { servicoDeAplicacaoDeAutenticacao, AuthApplicationState } from '../ServiçosFrontend/ServicosDeAplicacao/Autenticacao.ServicoDeAplicacao';
+import { servicoDeAplicacaoDeAutenticacao } from '../ServiçosFrontend/ServicosDeAplicacao/Autenticacao.ServicoDeAplicacao';
 import { ILoginEmailParams } from '../ServiçosFrontend/Contratos/Contrato.Autenticacao';
+import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider'; // Importa o hook de contexto
 
 export const useAutenticacao = () => {
-  const [authState, setAuthState] = useState<AuthApplicationState>(servicoDeAplicacaoDeAutenticacao.getState());
+  const { usuario, autenticado, processando, erro } = useAuth(); // Consome o estado do contexto
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthStateChange = (newState: AuthApplicationState) => {
-      setAuthState(newState);
-      
-      // A lógica de navegação agora é controlada pela camada de aplicação
-      if (newState.postLoginAction === 'navigateToCompleteProfile') {
-        navigate('/completar-perfil');
-      } else if (newState.postLoginAction === 'navigateToFeed') {
-        navigate('/feed');
-      }
-    };
+    // A inscrição agora é feita no AuthProvider.
+    // Este useEffect reage às mudanças de estado para realizar a navegação.
+    const state = servicoDeAplicacaoDeAutenticacao.getState();
+    if (state.postLoginAction === 'navigateToCompleteProfile') {
+      navigate('/completar-perfil');
+    } else if (state.postLoginAction === 'navigateToFeed') {
+      navigate('/feed');
+    }
+    // Re-executa o efeito quando o estado de autenticado muda.
+  }, [autenticado, navigate]);
 
-    const unsubscribe = servicoDeAplicacaoDeAutenticacao.subscribe(handleAuthStateChange);
-    return () => unsubscribe();
-  }, [navigate]);
-
+  // As funções de ação agora são simplesmente passadas do serviço de aplicação.
   const loginComEmail = useCallback(async (credentials: ILoginEmailParams) => {
     try {
       await servicoDeAplicacaoDeAutenticacao.loginComEmail(credentials);
     } catch (error) {
-      console.error("Falha no login com email:", error); // Opcional: pode mostrar um toast ou similar
+      console.error("Falha no login com email:", error);
     }
   }, []);
 
@@ -41,23 +39,23 @@ export const useAutenticacao = () => {
   }, []);
 
   const iniciarLoginComGoogle = useCallback(() => {
-    console.log("HOOK: iniciarLoginComGoogle");
     servicoDeAplicacaoDeAutenticacao.iniciarLoginComGoogle();
   }, []);
 
   const logout = useCallback(async () => {
     await servicoDeAplicacaoDeAutenticacao.logout();
-    navigate('/login'); // A navegação de logout pode permanecer aqui ou ser movida também
+    navigate('/login');
   }, [navigate]);
 
+  // Retorna o estado do contexto e as funções de ação.
   return {
-    usuario: authState.user,
-    autenticado: authState.isAuthenticated,
-    processando: authState.loading,
-    erro: authState.error,
+    usuario,
+    autenticado,
+    processando,
+    erro,
     loginComEmail,
     iniciarLoginComGoogle,
-    finalizarLoginComToken, // Expondo a nova função
+    finalizarLoginComToken,
     logout,
   };
 };

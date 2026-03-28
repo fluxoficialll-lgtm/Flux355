@@ -1,12 +1,23 @@
 
-import { AuthProvider, AuthState, ILoginEmailParams } from '../Infra/Providers/Auth.provider';
+import { infraProvider } from '../serviços/provedor/InfraProvider';
 import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
+import { Usuario } from '../../../types/Usuario'; // Ajuste o caminho conforme necessário
 
 const appServiceLogger = createApplicationServiceLogger('AuthApplicationService');
 
-// O estado da aplicação agora estende o AuthState, que é importado do provider.
-export interface AuthApplicationState extends AuthState {
-  postLoginAction?: 'navigateToFeed' | 'navigateToCompleteProfile';
+// --- Interfaces ---
+export interface AuthApplicationState {
+  usuario: Usuario | null;
+  token: string | null;
+  autenticado: boolean;
+  processando: boolean;
+  erro: string | null;
+  acaoPosLogin?: 'navigateToFeed' | 'navigateToCompleteProfile';
+}
+
+export interface LoginEmailParams {
+    email: string;
+    senha?: string; // Senha pode ser opcional dependendo do fluxo
 }
 
 class AuthApplicationService {
@@ -14,99 +25,112 @@ class AuthApplicationService {
   private listeners: ((state: AuthApplicationState) => void)[] = [];
 
   constructor() {
-    // Inicializa o estado usando o provider e se inscreve para futuras atualizações
-    this.state = AuthProvider.getState();
-    AuthProvider.subscribe(this.handleAuthChange.bind(this));
-
+    this.state = this.getInitialState();
     appServiceLogger.logOperationStart('constructor', { initialState: this.state });
   }
 
-  private handleAuthChange(newAuthState: AuthState) {
-    const wasJustAuthenticated = !this.state.isAuthenticated && newAuthState.isAuthenticated;
-    let postLoginAction: AuthApplicationState['postLoginAction'] | undefined = undefined;
+  // Inicializa o estado a partir do localStorage para persistência da sessão
+  private getInitialState(): AuthApplicationState {
+    try {
+        const token = localStorage.getItem('authToken');
+        const userJson = localStorage.getItem('authUser');
+        const usuario = userJson ? JSON.parse(userJson) : null;
 
-    appServiceLogger.logOperationSuccess('handleAuthChange', {
-      wasJustAuthenticated,
-      previous: this.state.isAuthenticated,
-      current: newAuthState.isAuthenticated,
-      newUserId: newAuthState.user?.id
-    });
-
-    // LÓGICA DE NEGÓCIO: A principal responsabilidade da camada de aplicação.
-    if (wasJustAuthenticated) {
-      // Decide a rota de pós-login com base no perfil do usuário.
-      postLoginAction = newAuthState.isNewUser ? 'navigateToCompleteProfile' : 'navigateToFeed';
-      appServiceLogger.logOperationSuccess('postLoginDecision', { userId: newAuthState.user?.id, action: postLoginAction });
+        if (token && usuario) {
+            return {
+                usuario,
+                token,
+                autenticado: true,
+                processando: false,
+                erro: null,
+            };
+        }
+    } catch (error) {
+        appServiceLogger.logOperationError('getInitialState', error, { message: 'Erro ao ler o localStorage' });
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
     }
     
-    this.updateState({ ...newAuthState, postLoginAction });
+    return {
+        usuario: null,
+        token: null,
+        autenticado: false,
+        processando: false,
+        erro: null,
+    };
   }
 
-  private updateState(newState: AuthApplicationState) {
-    this.state = newState;
+  private updateState(partialState: Partial<AuthApplicationState>) {
+    this.state = { ...this.state, ...partialState };
     this.listeners.forEach(listener => listener(this.state));
-    
-    // Ação pós-notificação: Limpa a ação para evitar execuções repetidas.
-    if (this.state.postLoginAction) {
-      this.state.postLoginAction = undefined;
+
+    // Limpa a ação de pós-login após notificar os listeners
+    if (this.state.acaoPosLogin) {
+      this.state.acaoPosLogin = undefined;
     }
   }
 
-  // --- MÉTODOS PÚBLICOS (A API da camada de aplicação) ---
+  // --- MÉTODOS PÚBLICOS ---
 
-  async loginComEmail(params: ILoginEmailParams) {
-    const { email } = params;
-    appServiceLogger.logOperationStart('loginComEmail', { email });
-    try {
-      // Delega a chamada para o provider, abstraindo a implementação.
-      await AuthProvider.loginComEmail(params);
-      // A lógica de sucesso e roteamento é tratada de forma reativa no `handleAuthChange`.
-    } catch (err: any) {
-      appServiceLogger.logOperationError('loginComEmail', err, { email });
-      throw err; // Re-lança para que a UI possa reagir ao erro (ex: mostrar uma mensagem).
-    }
-  }
+  async loginComEmail(params: LoginEmailParams) {
+    appServiceLogger.logOperationStart('loginComEmail', { email: params.email });
+    this.updateState({ processando: true, erro: null });
 
-  async finalizarLoginComToken(token: string) {
-    appServiceLogger.logOperationStart('finalizarLoginComToken');
     try {
-        await AuthProvider.finalizarLoginComToken(token);
-    } catch (err: any) {
-        appServiceLogger.logOperationError('finalizarLoginComToken', err, { token });
-        throw err;
-    }
-  }
+      const response = await infraProvider.post<{ token: string; usuario: Usuario; isNewUser: boolean; }>('/auth/login', params);
+      const { token, usuario, isNewUser } = response.data;
 
-  iniciarLoginComGoogle() {
-    console.log("APPLICATION: iniciarLoginComGoogle");
-    appServiceLogger.logOperationStart('iniciarLoginComGoogle');
-    try {
-        // Delega para o provider.
-        AuthProvider.iniciarLoginComGoogle();
-        appServiceLogger.logOperationSuccess('iniciarLoginComGoogle', { message: 'Redirecionamento iniciado via provider.' });
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('authUser', JSON.stringify(usuario));
+
+      const acaoPosLogin = isNewUser ? 'navigateToCompleteProfile' : 'navigateToFeed';
+
+      this.updateState({
+        usuario,
+        token,
+        autenticado: true,
+        processando: false,
+        acaoPosLogin,
+      });
+
+      appServiceLogger.logOperationSuccess('loginComEmail', { userId: usuario.id, acao: acaoPosLogin });
+
     } catch (err: any) {
-        appServiceLogger.logOperationError('iniciarLoginComGoogle', err);
-        throw err;
+      const errorMessage = err.response?.data?.message || 'Erro ao fazer login';
+      appServiceLogger.logOperationError('loginComEmail', err, { email: params.email });
+      this.updateState({ erro: errorMessage, processando: false });
+      throw new Error(errorMessage);
     }
   }
 
   async logout() {
     appServiceLogger.logOperationStart('logout');
+    this.updateState({ processando: true });
+
     try {
-      // Delega para o provider.
-      await AuthProvider.logout();
-      appServiceLogger.logOperationSuccess('logout', { message: 'Logout bem-sucedido via provider.' });
+        await infraProvider.post('/auth/logout');
+        appServiceLogger.logOperationSuccess('logout', { message: 'Logout bem-sucedido no backend.' });
     } catch (err: any) {
-      appServiceLogger.logOperationError('logout', err);
-      throw err;
+        // Mesmo que o logout do backend falhe, prosseguimos com a limpeza local.
+        appServiceLogger.logOperationError('logout', err, { message: 'Erro no logout do backend, limpando localmente mesmo assim.' });
+    } finally {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
+        
+        this.updateState({
+            usuario: null,
+            token: null,
+            autenticado: false,
+            processando: false,
+            erro: null,
+        });
     }
   }
 
-  // --- MÉTODOS DE OBSERVAÇÃO (Para Hooks da UI) ---
-
+  // --- Métodos de observação ---
   subscribe(listener: (state: AuthApplicationState) => void): () => void {
     this.listeners.push(listener);
-    listener(this.state); // Notifica imediatamente com o estado atual.
+    listener(this.state);
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
     };
@@ -117,5 +141,4 @@ class AuthApplicationService {
   }
 }
 
-// Exporta uma instância única do serviço de aplicação.
 export const servicoDeAplicacaoDeAutenticacao = new AuthApplicationService();

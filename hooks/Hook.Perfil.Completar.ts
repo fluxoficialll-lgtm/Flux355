@@ -3,13 +3,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { servicoDeAplicacaoDeAutenticacao, AuthApplicationState } from '../ServiçosFrontend/ServicosDeAplicacao/Autenticacao.ServicoDeAplicacao';
+import { servicoDeAplicacaoDeAutenticacao } from '../ServiçosFrontend/ServicosDeAplicacao/Autenticacao.ServicoDeAplicacao';
+import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider'; // Importa o hook de contexto
 
 const authService = servicoDeAplicacaoDeAutenticacao;
 
 export const useCompleteProfile = () => {
     const navigate = useNavigate();
-    const [authState, setAuthState] = useState<AuthApplicationState>(authService.getState());
+    // Utiliza o estado de autenticação centralizado
+    const { usuario, autenticado, processando } = useAuth();
 
     // Estado para o upload e corte da imagem de perfil
     const [previaImagem, setPreviaImagem] = useState<string | null>(null);
@@ -24,26 +26,19 @@ export const useCompleteProfile = () => {
         formState: { errors, isSubmitting },
     } = useForm<any>({ mode: 'onChange' });
 
-    // Inscreve-se nas atualizações do serviço de aplicação unificado
-    useEffect(() => {
-        const unsubscribe = authService.subscribe(setAuthState);
-        return () => unsubscribe();
-    }, []);
-
     // Reage às mudanças de estado de autenticação
     useEffect(() => {
-        const { user, loading, isAuthenticated } = authState;
-        if (!loading) {
+        if (!processando) {
             // Se não estiver autenticado, volta para a tela de login.
-            if (!isAuthenticated) {
+            if (!autenticado) {
                 navigate('/login');
             } 
             // Se o usuário já tiver o perfil completo (isNewUser é false), redireciona para o feed.
-            else if (user && !user.isNewUser) {
+            else if (usuario && !usuario.isNewUser) {
                 navigate('/feed');
             }
         }
-    }, [navigate, authState]);
+    }, [navigate, usuario, autenticado, processando]);
 
     // Funções de manipulação da imagem de perfil
     const aoMudarImagem = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +75,6 @@ export const useCompleteProfile = () => {
 
             // A navegação pode ser removida, pois o `handleAuthChange` no serviço de aplicação
             // já cuida do redirecionamento para o feed após o perfil ser completado.
-            // navigate('/feed');
 
         } catch (err: any) {
             console.error("Falha ao completar o perfil:", err);
