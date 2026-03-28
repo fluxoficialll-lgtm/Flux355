@@ -4,10 +4,6 @@ import { IRegistroParams, IResultadoRegistro } from './Processo.Registrar';
 import { infraProvider } from '../Infra/Infra.Provider.Usuario';
 import { loginGoogle, IUsuarioSocial } from './Login.Google';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
-import { buscarUsuario } from './Possibilidade.Buscar.Usuario';
-import { criarUsuario } from './Possibilidade.Criar.Usuario';
-import { atualizarUsuario, IAtualizacaoUsuarioParams, IResultadoAtualizacao } from './Possibilidade.Atualizar.Usuario';
-import { deletarUsuario, IResultadoDelecao } from './Possibilidade.Deletar.Usuario';
 
 type Listener = (estado: IEstadoAutenticacao) => void;
 
@@ -54,29 +50,25 @@ class ServicoAutenticacao {
     try {
       const dadosUsuarioSocial: IUsuarioSocial = await loginGoogle.processarCallback(idToken);
       
-      // Simulação da lógica de backend: verificar se o usuário já existe ou precisa ser criado
       let usuario = await infraProvider.buscarUsuarioPorEmail(dadosUsuarioSocial.email);
 
       if (!usuario) {
-        // Cria um novo usuário se não existir
         const novoUsuario = {
             nome: dadosUsuarioSocial.nome,
             email: dadosUsuarioSocial.email,
             senha: Math.random().toString(36).slice(-8), // Senha aleatória, pois o login é social
             aceitouTermos: true,
         };
-        const resultadoRegistro = await criarUsuario(novoUsuario, infraProvider);
+        const resultadoRegistro = await infraProvider.criarUsuario(novoUsuario);
         if(!resultadoRegistro.sucesso) {
             throw new Error(resultadoRegistro.mensagem);
         }
-        // Busca o usuário recém-criado para obter o ID
         usuario = await infraProvider.buscarUsuarioPorEmail(dadosUsuarioSocial.email);
         if(!usuario) {
             throw new Error('Falha ao buscar usuário recém-criado.');
         }
       }
 
-      // Define o estado de login
       processoLogin.definirEstado({ 
         autenticado: true, 
         usuario: { ...usuario, perfilCompleto: !!usuario.perfilCompleto }, 
@@ -94,7 +86,7 @@ class ServicoAutenticacao {
   }
 
   public async buscarUsuarioPorId(id: string): Promise<IUsuario> {
-    return buscarUsuario(id, infraProvider);
+    return infraProvider.buscarUsuario(id);
   }
 
   public subscribe(listener: Listener): () => void {
