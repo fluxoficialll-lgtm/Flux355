@@ -35,7 +35,7 @@ class InfraProviderUsuario {
     }
 
     public async completarPerfil(perfilData: any): Promise<any> {
-        return this.put("/auth/profile", perfilData);
+        return this.put("/usuarios/perfil", perfilData);
     }
 
     public async lidarComLoginSocial(dadosLogin: any): Promise<any> {
@@ -43,11 +43,11 @@ class InfraProviderUsuario {
     }
 
     public async buscarUsuarioPorId(id: string): Promise<any> {
-        return this.get(`/users/${id}`);
+        return this.get(`/usuarios/${id}`);
     }
 
     public async buscarUsuarioPorEmail(email: string): Promise<any> {
-        const result = await this.get(`/users?email=${email}`);
+        const result = await this.get(`/usuarios?email=${email}`);
         // A API pode retornar um array. A lógica de negócio decide como tratar.
         return Array.isArray(result) && result.length > 0 ? result[0] : result;
     }
