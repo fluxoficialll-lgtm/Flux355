@@ -1,26 +1,29 @@
 
 import { createApplicationServiceLogger } from '../SistemaObservabilidade/Log.Aplication';
 import { Usuario } from '../../../types/Usuario';
-import { servicoAutenticacao } from '../ServiçoDeAutenticação/Auth.Application';
-import { AuthState } from '../ServiçoDeAutenticação/Auth.Application';
+import { servicoAutenticacao, AuthState, LoginEmailParams } from '../ServiçoDeAutenticação/Auth.Application';
+import { LoginUseCase } from '../UseCases/Login.usecase';
+import { LogoutUseCase } from '../UseCases/Logout.usecase';
 
 const appServiceLogger = createApplicationServiceLogger('AuthApplicationService');
 
 // --- Interfaces ---
 export interface AuthApplicationState extends AuthState {}
 
-export interface LoginEmailParams {
-  email: string;
-  senha?: string;
-}
-
 class AuthApplicationService {
   private state: AuthApplicationState;
   private listeners: ((state: AuthApplicationState) => void)[] = [];
+  private loginUseCase: LoginUseCase;
+  private logoutUseCase: LogoutUseCase;
 
   constructor() {
     this.state = servicoAutenticacao.getState();
     servicoAutenticacao.subscribe(this.handleAuthStateChange);
+    
+    // Injeção de dependência dos UseCases
+    this.loginUseCase = new LoginUseCase(servicoAutenticacao);
+    this.logoutUseCase = new LogoutUseCase(servicoAutenticacao);
+
     appServiceLogger.logOperationStart('constructor', { initialState: this.state });
   }
 
@@ -34,7 +37,8 @@ class AuthApplicationService {
     appServiceLogger.logOperationStart('loginComEmail', { email: params.email });
     this.updateState({ processando: true, erro: null });
     try {
-      await servicoAutenticacao.login(params);
+      // Chama o UseCase em vez do serviço diretamente
+      await this.loginUseCase.execute(params);
       // O estado será atualizado através do subscribe
     } catch (err: any) {
       const errorMessage = err.message || 'Erro ao fazer login';
@@ -46,7 +50,8 @@ class AuthApplicationService {
 
   async logout() {
     appServiceLogger.logOperationStart('logout');
-    await servicoAutenticacao.logout();
+    // Chama o UseCase em vez do serviço diretamente
+    await this.logoutUseCase.execute();
     // O estado será atualizado através do subscribe
   }
 

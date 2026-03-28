@@ -1,6 +1,11 @@
 
-import { infraProviderAutenticacao } from './Infra.Provider.Autenticacao';
+import backend from '../Cliente.Backend.js';
+import { ENDPOINTS_AUTH } from '../EndPoints/EndPoints.Auth';
+import LoggerParaInfra from '../SistemaObservabilidade/Log.Infra';
+import { IPerfilParaCompletar } from '../ServiçoDeAutenticação/Processo.Completar.Perfil';
 import { infraProvider as infraProviderUsuario } from './Infra.Provider.Usuario';
+
+const logger = new LoggerParaInfra('DadosProvider.Autenticacao');
 
 // A interface ILoginSocialData é interna e não causa dependência externa.
 interface ILoginSocialData {
@@ -28,21 +33,19 @@ class C_DadosProvider {
     { campo: 'avatarUrl', tipo: 'string', obrigatorio: false },
   ];
 
-  // --- MÉTODOS ORQUESTRADORES ---
+  // --- MÉTODOS DE AUTENTICAÇÃO ---
 
   async login(email: string, senha: string): Promise<any> {
     try {
-      // Aqui usamos o infraProviderAutenticacao que já lida com a lógica de login.
-      const response = await infraProviderAutenticacao.login(email, senha);
-      // A resposta do login já vem no formato esperado pelo serviço de autenticação
-      return response;
+      const response = await backend.post(ENDPOINTS_AUTH.LOGIN, { email, senha });
+      return response.data; // Retorna diretamente os dados do backend (usuario, token, etc)
     } catch (error: any) {
-      // Em caso de erro, retornamos um objeto padronizado para falha.
-      return { sucesso: false, mensagem: error.response?.data?.message || "Falha na comunicação com o servidor durante o login." };
+      logger.error("Erro no login", error);
+      throw error;
     }
   }
 
-  async completarPerfil(perfilData: any): Promise<any> {
+  async completarPerfil(perfilData: IPerfilParaCompletar): Promise<any> {
     for (const campo of this.camposPerfilObrigatorio()) {
       if (campo.campo === 'id') continue;
       if (!(campo.campo in perfilData) || !perfilData[campo.campo as keyof any]) {
@@ -50,13 +53,10 @@ class C_DadosProvider {
       }
     }
     try {
-      const response = await infraProviderAutenticacao.completarPerfil(perfilData);
-      if (response.status === 200) {
-        return { sucesso: true, mensagem: "Perfil completado com sucesso!", usuarioAtualizado: response.data };
-      } else {
-        return { sucesso: false, mensagem: response.data.message || "Ocorreu um erro desconhecido." };
-      }
+      const response = await backend.put(ENDPOINTS_AUTH.PROFILE, perfilData);
+      return { sucesso: true, mensagem: "Perfil completado com sucesso!", usuarioAtualizado: response.data };
     } catch (error: any) {
+      logger.error("Erro ao completar o perfil", error);
       return { sucesso: false, mensagem: error.response?.data?.message || "Falha na comunicação com o servidor." };
     }
   }
@@ -68,12 +68,15 @@ class C_DadosProvider {
       }
     }
     try {
-      const resultado = await infraProviderAutenticacao.lidarComLoginSocial(dadosLogin);
-      return { sucesso: true, dados: resultado };
-    } catch (error: any) {
+      const response = await backend.post(ENDPOINTS_AUTH.LOGIN_GOOGLE, dadosLogin);
+      return response.data; // Retorna os dados do backend (usuário, token, etc.)
+    } catch (error) {
+      logger.error("Erro ao lidar com login social", error);
       throw error;
     }
   }
+
+  // --- MÉTODOS DE USUÁRIO ---
 
   async buscarUsuarioPorId(id: string): Promise<any> {
     try {
@@ -86,13 +89,10 @@ class C_DadosProvider {
 
   async buscarUsuarioPorEmail(email: string): Promise<any> {
     try {
-      // Assumindo um endpoint que busca por query param. Ex: /api/v1/users?email=test@test.com
       const response = await infraProviderUsuario.get(`/api/v1/users?email=${email}`);
-      // A API pode retornar um array, pegamos o primeiro resultado se existir.
       const usuario = response.data && response.data.length > 0 ? response.data[0] : null;
       return { sucesso: true, dados: usuario };
     } catch (error: any) {
-      // Se a API retornar 404, tratamos como sucesso na operação, mas sem dados.
       if (error.response && error.response.status === 404) {
           return { sucesso: true, dados: null };
       }
@@ -103,7 +103,6 @@ class C_DadosProvider {
   async criarUsuario(dadosUsuario: any): Promise<any> {
     try {
       const response = await infraProviderUsuario.post('/api/v1/users', dadosUsuario);
-      // O `criarUsuario` do infra.provider.usuario já retorna o formato { sucesso, usuarioId, mensagem }
       return response;
     } catch (error: any) {
       return { sucesso: false, mensagem: error.response?.data?.message || "Falha ao criar usuário." };
