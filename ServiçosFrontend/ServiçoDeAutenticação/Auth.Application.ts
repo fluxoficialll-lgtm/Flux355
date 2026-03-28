@@ -104,41 +104,33 @@ class ServicoAutenticacao {
     loginGoogle.iniciarLogin();
   }
 
+  // REATORADO: Agora este método delega a lógica para o backend
   public async finalizarLoginComGoogle(idToken: string): Promise<void> {
     const operation = 'finalizarLoginComGoogle';
     logger.logOperationStart(operation);
     try {
+      // 1. Obter os dados do perfil do Google, como antes.
       const dadosUsuarioSocial: IUsuarioSocial = await loginGoogle.processarCallback(idToken);
       
-      let response = await DadosProvider.buscarUsuarioPorEmail(dadosUsuarioSocial.email);
-      let usuario = response.dados;
+      // 2. Enviar dados para o backend para ele lidar com o login/registro.
+      // O backend irá verificar se o usuário existe, criá-lo se necessário, e retornar o usuário e um token.
+      const resultado = await DadosProvider.lidarComLoginSocial({
+        ...dadosUsuarioSocial,
+        tokenProvider: idToken, // Enviando o token original também
+      });
 
-      if (!usuario) {
-        const novoUsuario = {
-            nome: dadosUsuarioSocial.nome,
-            email: dadosUsuarioSocial.email,
-            senha: Math.random().toString(36).slice(-8),
-            aceitouTermos: true,
+      // 3. Atualizar o estado da aplicação com a resposta do backend.
+      if (resultado && resultado.usuario && resultado.token) {
+        this.estado = {
+          autenticado: true,
+          usuario: resultado.usuario,
+          token: resultado.token,
         };
-        const resultadoRegistro = await DadosProvider.criarUsuario(novoUsuario);
-        if(!resultadoRegistro.sucesso) {
-            throw new Error(resultadoRegistro.mensagem);
-        }
-        response = await DadosProvider.buscarUsuarioPorEmail(dadosUsuarioSocial.email);
-        usuario = response.dados;
-        if(!usuario) {
-            throw new Error('Falha ao buscar usuário recém-criado.');
-        }
+        this.notificarListeners();
+        logger.logOperationSuccess(operation, { userId: resultado.usuario.id });
+      } else {
+        throw new Error('A resposta do backend para o login social foi inválida.');
       }
-
-      this.estado = {
-        autenticado: true,
-        usuario: { ...usuario, perfilCompleto: !!usuario.perfilCompleto },
-        token: idToken,
-      };
-
-      this.notificarListeners();
-      logger.logOperationSuccess(operation, { userId: usuario.id });
 
     } catch (error) {
       logger.logOperationError(operation, error as Error);
