@@ -1,43 +1,41 @@
 
 import React, { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../ServiçosFrontend/serviços/provedor/AuthProvider';
 import { servicoAutenticacao } from '../ServiçosFrontend/ServiçoDeAutenticação/Auth.Application';
 
 export const GoogleAuthCallback: React.FC = () => {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { erro, autenticado, usuario } = useAuth();
 
     useEffect(() => {
-        // CORREÇÃO: Procurar pelo 'code' na URL, não pelo 'token'.
-        const code = searchParams.get('code');
+        // Extrai o fragmento da URL (parte após o '#')
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const idToken = params.get('id_token');
 
-        if (code) {
-            // CORREÇÃO: Chamar a função correta que implementamos.
-            servicoAutenticacao.finalizarLoginComGoogle(code);
+        if (idToken) {
+            // Usa o id_token para finalizar o login
+            servicoAutenticacao.finalizarLoginComGoogle(idToken);
         } else {
-            console.error("Nenhum código de autorização encontrado no callback do Google.");
+            console.error("Nenhum id_token encontrado no callback do Google.");
             navigate('/login?error=auth_failed');
         }
-        // O array de dependências vazio garante que isso rode apenas uma vez.
-    }, []);
+    }, [navigate]);
 
-    // Este useEffect lida com erros durante o processo.
+    // Lida com erros durante o processo
     useEffect(() => {
         if (erro) {
             navigate(`/login?error=${erro}`);
         }
     }, [erro, navigate]);
 
-    // Este useEffect já está correto e faz o redirecionamento que você quer!
+    // Redireciona o usuário após a autenticação
     useEffect(() => {
         if (autenticado) {
             if (usuario && !usuario.perfilCompleto) {
-                // A página de completar perfil que você já tem
                 navigate('/CompleteProfile'); 
             } else {
-                // A página de feed que você já tem
                 navigate('/Feed');
             }
         }

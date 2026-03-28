@@ -42,30 +42,34 @@ class LoginGoogle {
     const redirectUri = `${window.location.origin}/auth/google/callback`;
     const scope = 'openid profile email';
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    const nonce = Math.random().toString(36).substring(2, 15);
+
     authUrl.searchParams.append('client_id', googleClientId);
     authUrl.searchParams.append('redirect_uri', redirectUri);
-    authUrl.searchParams.append('response_type', 'code');
+    authUrl.searchParams.append('response_type', 'id_token');
     authUrl.searchParams.append('scope', scope);
-    authUrl.searchParams.append('access_type', 'offline');
-    authUrl.searchParams.append('prompt', 'consent');
+    authUrl.searchParams.append('nonce', nonce);
 
     window.location.href = authUrl.toString();
   }
 
   /**
-   * Processa o código de autorização retornado pelo Google após o consentimento do usuário.
-   * @param codigo - O código de autorização vindo da URL de callback.
+   * Processa o token de ID retornado pelo Google após o consentimento do usuário.
+   * @param idToken - O token de ID vindo do fragmento da URL de callback.
    * @returns Uma promessa que resolve com os dados padronizados do usuário.
    */
-  public async processarCallback(codigo: string): Promise<IUsuarioSocial> {
+  public async processarCallback(idToken: string): Promise<IUsuarioSocial> {
     const operation = 'processarCallback';
-    logger.logOperationStart(operation, { codigo });
+    logger.logOperationStart(operation, { idToken: idToken.substring(0, 10) + '...' }); // Log truncated token
     
+    // ATENÇÃO: Esta é uma implementação simulada.
+    // Em um ambiente de produção, você deve validar o idToken no backend
+    // e então usar as informações decodificadas do token.
     const usuarioSimulado: IUsuarioSocial = {
       id: `google_${new Date().getTime()}`,
       nome: "Usuário Simulado do Google",
       email: "usuario.google.simulado@example.com",
-      tokenProvider: codigo,
+      tokenProvider: idToken, // Em um caso real, você poderia não querer expor o token inteiro aqui.
     };
 
     logger.logOperationSuccess(operation, { usuario: usuarioSimulado });

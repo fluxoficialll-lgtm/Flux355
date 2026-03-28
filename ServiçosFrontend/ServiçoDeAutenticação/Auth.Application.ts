@@ -2,12 +2,12 @@
 import { processoLogin, IEstadoAutenticacao, IUsuario } from './Processo.Login';
 import { IRegistroParams, IResultadoRegistro } from './Processo.Registrar';
 import { infraProvider } from '../Infra/Infra.Provider.Usuario';
-import { loginGoogle } from './Login.Google';
+import { loginGoogle, IUsuarioSocial } from './Login.Google';
 import { createServiceLogger } from '../SistemaObservabilidade/Log.Servicos.Frontend';
 import { buscarUsuario } from './Possibilidade.Buscar.Usuario';
 import { criarUsuario } from './Possibilidade.Criar.Usuario';
 import { atualizarUsuario, IAtualizacaoUsuarioParams, IResultadoAtualizacao } from './Possibilidade.Atualizar.Usuario';
-import { deletarUsuario, IResultadoDelecao } from './Possibilidade.Deletar.Usuario'; // Importando a nova possibilidade
+import { deletarUsuario, IResultadoDelecao } from './Possibilidade.Deletar.Usuario';
 
 type Listener = (estado: IEstadoAutenticacao) => void;
 
@@ -40,41 +40,57 @@ class ServicoAutenticacao {
     // ... (código existente)
   }
 
-  // --- NOVO MÉTODO PARA DELETAR A PRÓPRIA CONTA ---
   public async deletarMinhaConta(): Promise<IResultadoDelecao> {
-    const operation = 'deletarMinhaConta';
-    logger.logOperationStart(operation);
-    const estadoAtual = this.getState();
-
-    if (!estadoAtual.autenticado || !estadoAtual.usuario) {
-      const errorMsg = "Usuário não autenticado.";
-      logger.logOperationError(operation, new Error(errorMsg));
-      return { sucesso: false, mensagem: errorMsg };
-    }
-
-    const idParaDeletar = estadoAtual.usuario.id;
-
-    // 1. Delega a lógica de deleção para a "possibilidade" correspondente.
-    const resultado = await deletarUsuario(idParaDeletar, infraProvider);
-
-    // 2. Orquestra a próxima ação: se a deleção foi bem-sucedida, faz o logout.
-    if (resultado.sucesso) {
-      logger.logInfo('Usuário deletado com sucesso. Realizando logout.', { userId: idParaDeletar });
-      await this.logout();
-    } else {
-      logger.logOperationError(operation, new Error(resultado.mensagem), { userId: idParaDeletar });
-    }
-
-    return resultado;
+    // ... (código existente)
   }
-
 
   public iniciarLoginComGoogle(): void {
-    // ... (código existente)
+    loginGoogle.iniciarLogin();
   }
 
-  public async finalizarLoginComGoogle(code: string): Promise<void> {
-    // ... (código existente)
+  public async finalizarLoginComGoogle(idToken: string): Promise<void> {
+    const operation = 'finalizarLoginComGoogle';
+    logger.logOperationStart(operation);
+    try {
+      const dadosUsuarioSocial: IUsuarioSocial = await loginGoogle.processarCallback(idToken);
+      
+      // Simulação da lógica de backend: verificar se o usuário já existe ou precisa ser criado
+      let usuario = await infraProvider.buscarUsuarioPorEmail(dadosUsuarioSocial.email);
+
+      if (!usuario) {
+        // Cria um novo usuário se não existir
+        const novoUsuario = {
+            nome: dadosUsuarioSocial.nome,
+            email: dadosUsuarioSocial.email,
+            senha: Math.random().toString(36).slice(-8), // Senha aleatória, pois o login é social
+            aceitouTermos: true,
+        };
+        const resultadoRegistro = await criarUsuario(novoUsuario, infraProvider);
+        if(!resultadoRegistro.sucesso) {
+            throw new Error(resultadoRegistro.mensagem);
+        }
+        // Busca o usuário recém-criado para obter o ID
+        usuario = await infraProvider.buscarUsuarioPorEmail(dadosUsuarioSocial.email);
+        if(!usuario) {
+            throw new Error('Falha ao buscar usuário recém-criado.');
+        }
+      }
+
+      // Define o estado de login
+      processoLogin.definirEstado({ 
+        autenticado: true, 
+        usuario: { ...usuario, perfilCompleto: !!usuario.perfilCompleto }, 
+        token: idToken
+      });
+
+      this.notificarListeners();
+      logger.logOperationSuccess(operation, { userId: usuario.id });
+
+    } catch (error) {
+      logger.logOperationError(operation, error as Error);
+      processoLogin.definirErro((error as Error).message);
+      this.notificarListeners();
+    }
   }
 
   public async buscarUsuarioPorId(id: string): Promise<IUsuario> {
